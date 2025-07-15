@@ -43,3 +43,9 @@ Use the credentials defined in your `.env` file to access the web UIs.
 
 1.  Connect to the WireGuard VPN using a client (see the WireGuard web UI for configuration).
 2.  Your internet traffic will now be routed through the VPN, and DNS queries will be filtered by AdGuard Home.
+
+
+## Licensing
+
+This project is released under the [GNU Affero General Public License v3](LICENSE) (AGPLv3).  
+See the `LICENSE` file for details.
