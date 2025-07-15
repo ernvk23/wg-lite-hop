@@ -1,11 +1,11 @@
 # Docker Compose configuration for WireGuard VPN setup with Traefik reverse proxy
 
 # Persistent storage volumes
-# 'wireguard_config' is a Docker-managed named volume.
+# 'etc_wireguard' is a Docker-managed named volume.
 # AdGuard volumes are also Docker-managed.
 # Traefik config files are mounted from the host (bind mounts) and don't need to be declared here.
 volumes:
-  wireguard_config: {}
+  etc_wireguard: {}
   adguard_work: {}
   adguard_conf: {}
 
@@ -50,9 +50,9 @@ services:
       - traefik.http.services.adguard.loadbalancer.server.port=3000
 
   # WireGuard VPN server with web UI
-  wireguard:
+  wg-easy:
     image: ghcr.io/wg-easy/wg-easy:15
-    container_name: wireguard
+    container_name: wg-easy
     restart: unless-stopped
     networks:
       vpn-network:
@@ -66,7 +66,7 @@ services:
     ports:
       - "51820:51820/udp"
     volumes:
-      - wireguard_config:/wireguard
+      - etc_wireguard:/etc/wireguard
       - /lib/modules:/lib/modules:ro
     cap_add:
       - NET_ADMIN
@@ -79,7 +79,7 @@ services:
       - net.ipv6.conf.default.forwarding=1
     labels:
       - traefik.enable=true
-      - traefik.http.services.wireguard.loadbalancer.server.port=51821
+      - traefik.http.services.wg-easy.loadbalancer.server.port=51821
 
 # Network configuration
 networks:
@@ -93,6 +93,6 @@ networks:
         - subnet: fdcc:ad94:bacf:61a3::/64
 
 # Routes:
-# - / : WireGuard web UI
-# - /api and /dashboard : Traefik dashboard
-# - /adguard : AdGuard Home web UI
+# - https://your_domain.com           -> WireGuard web UI
+# - https://your_domain.com/dashboard -> Traefik dashboard
+# - https://your_domain.com/adguard   -> AdGuard Home web UI

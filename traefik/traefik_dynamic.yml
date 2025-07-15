@@ -33,7 +33,7 @@ http:
       rule: Host(`${DOMAIN}`) && PathPrefix(`/`)
       entryPoints:
         - websecure
-      service: wireguard@docker
+      service: wg-easy@docker
       priority: 1
 
     # Traefik dashboard - higher priority for specific path
