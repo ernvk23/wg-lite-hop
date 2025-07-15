@@ -67,7 +67,7 @@ echo "acme.json created with secure permissions."
 cat << EOF > instructions.txt
 Pending Tasks:
 1. Edit the .env file with your actual domain, email, and a new password hash.
-2. Start the services: docker compose up -d
+2. Start the services: sudo docker compose up -d
 EOF
 
 echo -e "\nInstructions file created. Contents:"
