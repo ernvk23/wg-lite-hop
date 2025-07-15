@@ -26,7 +26,7 @@ entryPoints:
         - compress@file # Global compression for performance
       tls:
         certResolver: letsencrypt
-        options: default@file
+        # options: default@file
     http3: {}
 
 providers:
