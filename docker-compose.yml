@@ -92,17 +92,6 @@ networks:
         - subnet: 10.42.42.0/24
         - subnet: fdcc:ad94:bacf:61a3::/64
 
-# Quick Setup Guide:
-# 1. Create required directories and files:
-#    mkdir -p traefik
-#    
-# 2. Copy environment file and configure:
-#    cp .env.example .env
-#    # Edit .env with your values
-#
-# 3. Start the services:
-#    docker-compose up -d
-#
 # Routes:
 # - / : WireGuard web UI
 # - /api and /dashboard : Traefik dashboard
