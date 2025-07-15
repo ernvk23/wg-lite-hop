@@ -15,8 +15,7 @@ This project, inspired by and adapted from [wg-easy](https://github.com/wg-easy/
 1.  **Clone the repository:**
 
     ```bash
-    git clone <repository_url>
-    cd easy-wg-based
+    git clone https://github.com/ernvk23/wg-lite-hop && cd wg-lite-hop
     ```
 2.  **Run the setup script:**
 
@@ -47,5 +46,4 @@ Use the credentials defined in your `.env` file to access the web UIs.
 
 ## Licensing
 
-This project is released under the [GNU Affero General Public License v3](LICENSE) (AGPLv3).  
-See the `LICENSE` file for details.
+This project is released under the [GNU Affero General Public License v3](LICENSE)
