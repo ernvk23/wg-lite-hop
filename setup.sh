@@ -56,6 +56,13 @@ AUTH_PASS_HASH=your_generated_hash
 EOF
 fi
 
+# Create traefik directory and acme.json for Let's Encrypt certificates
+echo "Creating Traefik acme.json file..."
+mkdir -p ./traefik
+touch ./traefik/acme.json
+chmod 600 ./traefik/acme.json
+echo "acme.json created with secure permissions."
+
 # Create instructions file
 cat << EOF > instructions.txt
 Pending Tasks:
