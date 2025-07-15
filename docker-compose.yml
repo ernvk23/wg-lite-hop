@@ -1,6 +1,13 @@
----
 # Docker Compose configuration for WireGuard VPN setup with Traefik reverse proxy
-version: "3.8"
+
+# Persistent storage volumes
+# 'wireguard_config' is a Docker-managed named volume.
+# AdGuard volumes are also Docker-managed.
+# Traefik config files are mounted from the host (bind mounts) and don't need to be declared here.
+volumes:
+  wireguard_config: {}
+  adguard_work: {}
+  adguard_conf: {}
 
 services:
   # Traefik reverse proxy - handles SSL/TLS termination and routing
@@ -16,9 +23,9 @@ services:
       - "443:443/udp"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik/traefik.yml:/traefik/traefik.yml:ro
-      - ./traefik/traefik_dynamic.yml:/traefik/traefik_dynamic.yml:ro
-      - ./traefik/acme.json:/traefik/acme.json
+      - ./traefik/traefik.yml:/traefik.yml:ro
+      - ./traefik/traefik_dynamic.yml:/traefik_dynamic.yml:ro
+      - ./traefik/acme.json:/acme.json
     environment:
       - TRAEFIK_ACME_EMAIL=${TRAEFIK_ACME_EMAIL}
       - AUTH_USER=${AUTH_USER}
@@ -35,11 +42,8 @@ services:
         ipv4_address: 10.42.42.43
         ipv6_address: fdcc:ad94:bacf:61a3::43
     volumes:
-      - adguard_work:/adguardhome/work
-      - adguard_conf:/adguardhome/conf
-    environment:
-      - AGH_CONFIG_DIR=/adguardhome/conf
-      - AGH_WORK_DIR=/adguardhome/work
+      - adguard_work:/opt/adguardhome/work
+      - adguard_conf:/opt/adguardhome/conf
     labels:
       - "org.label-schema.schema-version=1.0"
       - traefik.enable=true
@@ -71,15 +75,6 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.services.wireguard.loadbalancer.server.port=51821
-
-# Persistent storage volumes
-# 'wireguard_config' is a Docker-managed named volume.
-# AdGuard volumes are also Docker-managed.
-# Traefik config files are mounted from the host (bind mounts) and don't need to be declared here.
-volumes:
-  wireguard_config: {}
-  adguard_work: {}
-  adguard_conf: {}
 
 # Network configuration
 networks:

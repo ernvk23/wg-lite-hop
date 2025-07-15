@@ -38,13 +38,13 @@ providers:
 
   # File provider to load routing rules and middlewares from a separate file
   file:
-    filename: /traefik/traefik_dynamic.yml
+    filename: traefik_dynamic.yml
     watch: true
 
 certificatesResolvers:
   letsencrypt:
     acme:
       email: ${TRAEFIK_ACME_EMAIL}
-      storage: /traefik/acme.json
+      storage: acme.json
       httpChallenge:
         entryPoint: web
