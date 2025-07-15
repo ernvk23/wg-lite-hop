@@ -30,31 +30,29 @@ http:
   routers:
     # WireGuard web UI - root path with lowest priority
     wg-easy:
-      rule: Host(`${DOMAIN}`) && PathPrefix(`/`)
+      rule: Host(`{{ env "DOMAIN" }}`) && PathPrefix(`/`)
       entryPoints:
         - websecure
-      service: wg-easy@docker
+      service: wg-easy
       priority: 1
 
     # Traefik dashboard - higher priority for specific path
     traefik:
-      rule: Host(`${DOMAIN}`) && PathPrefix(`/dashboard`)
+      rule: Host(`{{ env "DOMAIN" }}`) && PathPrefix(`/dashboard`)
       entryPoints:
         - websecure
       middlewares: # Auth is handled by the entrypoint, but we still need the stripPrefix
         - dashboard-strip@file
       service: api@internal
-      priority: 10
 
     # AdGuard Home - higher priority for specific path
     adguard:
-      rule: Host(`${DOMAIN}`) && PathPrefix(`/adguard`)
+      rule: Host(`{{ env "DOMAIN" }}`) && PathPrefix(`/adguard`)
       entryPoints:
         - websecure
       middlewares: # Auth is handled by the entrypoint, but we still need the stripPrefix
         - adguard-strip@file
-      service: adguard@docker
-      priority: 10
+      service: adguard
 
 tls:
   options:
