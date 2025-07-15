@@ -1,0 +1,67 @@
+http:
+  middlewares:
+    auth:
+      basicAuth:
+        users:
+          - "${AUTH_USER}:${AUTH_PASS_HASH}"
+
+    dashboard-strip:
+      stripPrefix:
+        prefixes:
+          - /dashboard
+
+    adguard-strip:
+      stripPrefix:
+        prefixes:
+          - /adguard
+
+    # A recommended middleware for security, tells browsers to only use HTTPS
+    hsts:
+      headers:
+        # 31536000 seconds = 1 year. This is required for HSTS preloading.
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        stsPreload: true
+
+    # A recommended middleware for performance, enables gzip compression
+    compress:
+      compress: {}
+
+  routers:
+    # WireGuard web UI - root path with lowest priority
+    wireguard-ui:
+      rule: Host(`${DOMAIN}`) && PathPrefix(`/`)
+      entryPoints:
+        - websecure
+      service: wireguard@docker
+      priority: 1
+
+    # Traefik dashboard - higher priority for specific path
+    traefik-dashboard:
+      rule: Host(`${DOMAIN}`) && PathPrefix(`/dashboard`)
+      entryPoints:
+        - websecure
+      middlewares: # Auth is handled by the entrypoint, but we still need the stripPrefix
+        - dashboard-strip@file
+      service: api@internal
+      priority: 10
+
+    # AdGuard Home - higher priority for specific path
+    adguard-ui:
+      rule: Host(`${DOMAIN}`) && PathPrefix(`/adguard`)
+      entryPoints:
+        - websecure
+      middlewares: # Auth is handled by the entrypoint, but we still need the stripPrefix
+        - adguard-strip@file
+      service: adguard@docker
+      priority: 10
+
+tls:
+  options:
+    default:
+      minVersion: VersionTLS12
+      cipherSuites:
+        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+      sniStrict: true

@@ -1,0 +1,108 @@
+---
+# Docker Compose configuration for WireGuard VPN setup with Traefik reverse proxy
+version: "3.8"
+
+services:
+  # Traefik reverse proxy - handles SSL/TLS termination and routing
+  traefik:
+    image: traefik:3.3
+    container_name: traefik
+    restart: unless-stopped
+    networks:
+      - vpn-network
+    ports:
+      - "80:80/tcp"
+      - "443:443/tcp"
+      - "443:443/udp"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/traefik/traefik.yml:ro
+      - ./traefik/traefik_dynamic.yml:/traefik/traefik_dynamic.yml:ro
+      - ./traefik/acme.json:/traefik/acme.json
+    environment:
+      - TRAEFIK_ACME_EMAIL=${TRAEFIK_ACME_EMAIL}
+      - AUTH_USER=${AUTH_USER}
+      - AUTH_PASS_HASH=${AUTH_PASS_HASH}
+      - DOMAIN=${DOMAIN}
+
+  # AdGuard Home DNS ad blocker
+  adguard:
+    image: adguard/adguardhome:latest
+    container_name: adguard
+    restart: unless-stopped
+    networks:
+      vpn-network:
+        ipv4_address: 10.42.42.43
+        ipv6_address: fdcc:ad94:bacf:61a3::43
+    volumes:
+      - adguard_work:/adguardhome/work
+      - adguard_conf:/adguardhome/conf
+    environment:
+      - AGH_CONFIG_DIR=/adguardhome/conf
+      - AGH_WORK_DIR=/adguardhome/work
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.adguard.loadbalancer.server.port=3000
+
+  # WireGuard VPN server with web UI
+  wireguard:
+    image: ghcr.io/wg-easy/wg-easy:15
+    container_name: wireguard
+    restart: unless-stopped
+    networks:
+      vpn-network:
+        ipv4_address: 10.42.42.42
+        ipv6_address: fdcc:ad94:bacf:61a3::42
+    ports:
+      - "51820:51820/udp"
+    volumes:
+      - wireguard_config:/wireguard
+      - /lib/modules:/lib/modules:ro
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv4.conf.all.src_valid_mark=1
+      - net.ipv6.conf.all.disable_ipv6=0
+      - net.ipv6.conf.all.forwarding=1
+      - net.ipv6.conf.default.forwarding=1
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.wireguard.loadbalancer.server.port=51821
+
+# Persistent storage volumes
+# 'wireguard_config' is a Docker-managed named volume.
+# AdGuard volumes are also Docker-managed.
+# Traefik config files are mounted from the host (bind mounts) and don't need to be declared here.
+volumes:
+  wireguard_config: {}
+  adguard_work: {}
+  adguard_conf: {}
+
+# Network configuration
+networks:
+  vpn-network:
+    driver: bridge
+    enable_ipv6: true
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.42.42.0/24
+        - subnet: fdcc:ad94:bacf:61a3::/64
+
+# Quick Setup Guide:
+# 1. Create required directories and files:
+#    mkdir -p traefik
+#    
+# 2. Copy environment file and configure:
+#    cp .env.example .env
+#    # Edit .env with your values
+#
+# 3. Start the services:
+#    docker-compose up -d
+#
+# Routes:
+# - / : WireGuard web UI
+# - /api and /dashboard : Traefik dashboard
+# - /adguard : AdGuard Home web UI

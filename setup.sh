@@ -1,0 +1,64 @@
+#!/bin/bash
+
+echo "Setting up WireGuard with Traefik..."
+
+if [ "$EUID" -ne 0 ]; then 
+    echo "Please run with sudo privileges"
+    exit 1
+fi
+# Check if dnf is present, indicating an RHEL-based system
+if command -v dnf &> /dev/null; then
+    echo "Detected RHEL-based system. Proceeding..."
+else
+    echo "Unsupported distribution. This script requires a RHEL-based system (AlmaLinux, CentOS, Fedora)."
+    exit 1
+fi
+
+# Install Docker if not present and start it
+if ! command -v docker &> /dev/null; then
+    echo "Docker not found. Installing and starting..."
+    sudo systemctl enable --now docker
+    echo "Docker installed and started."
+fi
+
+# Check if firewalld is present, install and enable if not
+if ! command -v firewall-cmd &> /dev/null; then
+  echo "firewalld not found. Installing and enabling..."
+  sudo dnf install -y firewalld
+  sudo systemctl start firewalld
+  sudo systemctl enable firewalld
+  echo "firewalld installed and enabled."
+fi
+
+# Configure firewall ports
+echo "Configuring firewall ports..."
+sudo firewall-cmd --permanent --add-port=80/tcp
+sudo firewall-cmd --permanent --add-port=443/tcp
+sudo firewall-cmd --permanent --add-port=443/udp
+sudo firewall-cmd --permanent --add-port=51820/udp
+sudo firewall-cmd --reload
+echo "Firewall configured. Ports 80, 443, 443/udp, and 51820/udp are now open."
+
+# Create .env file from template if it doesn't exist
+if [ ! -f .env ]; then
+    echo "Creating .env file..."
+    cat << EOF > .env
+DOMAIN=your-domain.com
+TRAEFIK_ACME_EMAIL=your-email@domain.com
+
+# Web UI Authentication
+AUTH_USER=your_username
+# Generate a new password hash with: docker run --rm httpd:2.4-alpine htpasswd -nbB user password
+AUTH_PASS_HASH=your_generated_hash
+EOF
+fi
+
+# Create instructions file
+cat << EOF > instructions.txt
+Pending Tasks:
+1. Edit the .env file with your actual domain, email, and a new password hash.
+2. Start the services: docker compose up -d
+EOF
+
+echo -e "\nInstructions file created. Contents:"
+cat instructions.txt
