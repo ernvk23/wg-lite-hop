@@ -15,7 +15,7 @@ This project, inspired by and adapted from [wg-easy](https://github.com/wg-easy/
 1.  **Clone the repository:**
 
     ```bash
-    git clone https://github.com/ernvk23/wg-lite-hop && cd wg-lite-hop
+    curl -L https://github.com/ernvk23/wg-lite-hop/archive/refs/heads/main.tar.gz | tar xz && cd wg-lite-hop-main
     ```
 2.  **Run the setup script:**
 
