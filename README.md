@@ -1,6 +1,8 @@
 # Easy WireGuard VPN with Traefik and AdGuard Home
 
-This project sets up a WireGuard VPN server with a web UI for easy configuration, protected by Traefik as a reverse proxy with automatic Let's Encrypt SSL/TLS certificates. It also includes AdGuard Home for network-wide ad and tracker blocking.
+This project, inspired by and adapted from [wg-easy](https://github.com/wg-easy/wg-easy), sets up a WireGuard VPN server with a web UI for easy configuration, protected by Traefik as a reverse proxy with automatic Let's Encrypt SSL/TLS certificates. It also includes AdGuard Home for network-wide ad and tracker blocking.
+
+
 
 ## Prerequisites
 
