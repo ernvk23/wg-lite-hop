@@ -6,8 +6,6 @@
 # Traefik config files are mounted from the host (bind mounts) and don't need to be declared here.
 volumes:
   etc_wireguard: {}
-  adguard_work: {}
-  adguard_conf: {}
 
 services:
   # Traefik reverse proxy - handles SSL/TLS termination and routing
@@ -46,8 +44,8 @@ services:
     container_name: adguard
     restart: unless-stopped
     volumes:
-      - adguard_work:/opt/adguardhome/work
-      - adguard_conf:/opt/adguardhome/conf
+      - ./adguard/adguard_work:/opt/adguardhome/work
+      - ./adguard/adguard_conf:/opt/adguardhome/conf
     networks:
       traefik-net:
         ipv4_address: 10.42.42.43

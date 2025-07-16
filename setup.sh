@@ -63,6 +63,14 @@ touch ./traefik/acme.json
 chmod 600 ./traefik/acme.json
 echo "acme.json created with secure permissions."
 
+
+echo "Creating Adguard volume dirs..."
+mkdir -p ./adguard/adguard_work ./adguard/adguard_conf
+chmod -R 700 ./adguard/adguard_work ./adguard/adguard_conf
+
+echo "Adguard volume dirs created with secure permissions."
+
+
 # Create instructions file
 cat << EOF > instructions.txt
 Pending Tasks:
