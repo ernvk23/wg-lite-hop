@@ -3,12 +3,7 @@ http:
     auth:
       basicAuth:
         users:
-          - "${AUTH_USER}:${AUTH_PASS_HASH}"
-
-    dashboard-strip:
-      stripPrefix:
-        prefixes:
-          - /dashboard
+          - '{{ env "AUTH_USER" }}:{{ env "AUTH_PASS_HASH" }}'
 
     adguard-strip:
       stripPrefix:
@@ -28,21 +23,13 @@ http:
       compress: {}
 
   routers:
-    # WireGuard web UI - root path with lowest priority
-    wg-easy:
-      rule: Host(`{{ env "DOMAIN" }}`) && PathPrefix(`/`)
-      entryPoints:
-        - websecure
-      service: wg-easy
-      priority: 1
-
     # Traefik dashboard - higher priority for specific path
     traefik:
-      rule: Host(`{{ env "DOMAIN" }}`) && PathPrefix(`/dashboard`)
+      rule: Host(`{{ env "DOMAIN" }}`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))
       entryPoints:
         - websecure
-      middlewares: # Auth is handled by the entrypoint, but we still need the stripPrefix
-        - dashboard-strip@file
+      middlewares:
+        - auth
       service: api@internal
 
     # AdGuard Home - higher priority for specific path
@@ -50,9 +37,20 @@ http:
       rule: Host(`{{ env "DOMAIN" }}`) && PathPrefix(`/adguard`)
       entryPoints:
         - websecure
-      middlewares: # Auth is handled by the entrypoint, but we still need the stripPrefix
-        - adguard-strip@file
-      service: adguard
+      middlewares:
+        - auth
+        - adguard-strip
+      service: adguard@docker
+
+    # WireGuard web UI - root path with lowest priority
+    wg-easy:
+      rule: Host(`{{ env "DOMAIN" }}`)
+      entryPoints:
+        - websecure
+      middlewares:
+        - auth
+      service: wg-easy@docker
+      priority: 1
 
 tls:
   options:

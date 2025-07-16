@@ -16,7 +16,7 @@ services:
     container_name: traefik
     restart: unless-stopped
     networks:
-      - vpn-network
+      - traefik-net
     ports:
       - "80:80/tcp"
       - "443:443/tcp"
@@ -27,10 +27,13 @@ services:
       - ./traefik/traefik_dynamic.yml:/traefik_dynamic.yml:ro
       - ./traefik/acme.json:/acme.json
     environment:
-      - TRAEFIK_ACME_EMAIL=${TRAEFIK_ACME_EMAIL}
+      - TRAEFIK_CERTIFICATESRESOLVERS_LETSENCRYPT_ACME_EMAIL=${TRAEFIK_ACME_EMAIL}
       - AUTH_USER=${AUTH_USER}
       - AUTH_PASS_HASH=${AUTH_PASS_HASH}
       - DOMAIN=${DOMAIN}
+    labels:
+      # Only enable Traefik. The router and service are handled by the dynamic config and internal provider.
+      - "traefik.enable=true"
 
   # AdGuard Home DNS ad blocker
   adguard:
@@ -38,7 +41,7 @@ services:
     container_name: adguard
     restart: unless-stopped
     networks:
-      vpn-network:
+      traefik-net:
         ipv4_address: 10.42.42.43
         ipv6_address: fdcc:ad94:bacf:61a3::43
     volumes:
@@ -46,8 +49,10 @@ services:
       - adguard_conf:/opt/adguardhome/conf
     labels:
       - "org.label-schema.schema-version=1.0"
-      - traefik.enable=true
-      - traefik.http.services.adguard.loadbalancer.server.port=3000
+      # Enable Traefik for this container and tell it which port the service uses.
+      # The router is defined in traefik_dynamic.yml
+      - "traefik.enable=true"
+      - "traefik.http.services.adguard.loadbalancer.server.port=3000"
 
   # WireGuard VPN server with web UI
   wg-easy:
@@ -55,7 +60,7 @@ services:
     container_name: wg-easy
     restart: unless-stopped
     networks:
-      vpn-network:
+      traefik-net:
         ipv4_address: 10.42.42.42
         ipv6_address: fdcc:ad94:bacf:61a3::42
     environment:
@@ -78,12 +83,15 @@ services:
       - net.ipv6.conf.all.forwarding=1
       - net.ipv6.conf.default.forwarding=1
     labels:
-      - traefik.enable=true
-      - traefik.http.services.wg-easy.loadbalancer.server.port=51821
+      # Enable Traefik for this container and tell it which port the service uses.
+      # The router is defined in traefik_dynamic.yml
+      - "traefik.enable=true"
+      - "traefik.http.services.wg-easy.loadbalancer.server.port=51821"
 
 # Network configuration
 networks:
-  vpn-network:
+  traefik-net:
+    name: traefik-net
     driver: bridge
     enable_ipv6: true
     ipam:

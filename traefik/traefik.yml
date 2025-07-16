@@ -4,9 +4,6 @@ global:
 log:
   level: INFO
 
-api:
-  dashboard: true
-
 entryPoints:
   web:
     address: ":80/tcp"
@@ -21,25 +18,14 @@ entryPoints:
     address: ":443/tcp"
     http:
       middlewares:
-        - auth@file # Global authentication
-        - hsts@file # Global HSTS headers for security
         - compress@file # Global compression for performance
+        - hsts@file # Global HSTS headers for security
       tls:
         certResolver: letsencrypt
-        # options: default@file
     http3: {}
 
-providers:
-  # Docker provider to auto-discover services from container labels
-  docker:
-    endpoint: "unix:///var/run/docker.sock"
-    exposedByDefault: false
-    watch: true
-
-  # File provider to load routing rules and middlewares from a separate file
-  file:
-    filename: traefik_dynamic.yml
-    watch: true
+api:
+  dashboard: true
 
 certificatesResolvers:
   letsencrypt:
@@ -47,3 +33,15 @@ certificatesResolvers:
       storage: acme.json
       httpChallenge:
         entryPoint: web
+
+providers:
+  # Docker provider to auto-discover services from container labels
+  docker:
+    exposedByDefault: false
+    watch: true
+    network: traefik-net
+
+  # File provider to load routing rules and middlewares from a separate file
+  file:
+    filename: traefik_dynamic.yml
+    watch: true
