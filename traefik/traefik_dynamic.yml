@@ -1,10 +1,5 @@
 http:
   middlewares:
-    auth:
-      basicAuth:
-        users:
-          - '{{ env "AUTH_USER" }}:{{ env "AUTH_PASS_HASH" }}'
-
     adguard-strip:
       stripPrefix:
         prefixes:
@@ -21,36 +16,6 @@ http:
     # A recommended middleware for performance, enables gzip compression
     compress:
       compress: {}
-
-  routers:
-    # Traefik dashboard - higher priority for specific path
-    traefik:
-      rule: Host(`{{ env "DOMAIN" }}`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))
-      entryPoints:
-        - websecure
-      middlewares:
-        - auth
-      service: api@internal
-
-    # AdGuard Home - higher priority for specific path
-    adguard:
-      rule: Host(`{{ env "DOMAIN" }}`) && PathPrefix(`/adguard`)
-      entryPoints:
-        - websecure
-      middlewares:
-        - auth
-        - adguard-strip
-      service: adguard@docker
-
-    # WireGuard web UI - root path with lowest priority
-    wg-easy:
-      rule: Host(`{{ env "DOMAIN" }}`)
-      entryPoints:
-        - websecure
-      middlewares:
-        - auth
-      service: wg-easy@docker
-      priority: 1
 
 tls:
   options:

@@ -12,7 +12,6 @@ entryPoints:
         entryPoint:
           to: websecure
           scheme: https
-          permanent: true
 
   websecure:
     address: ":443/tcp"
@@ -30,18 +29,18 @@ api:
 certificatesResolvers:
   letsencrypt:
     acme:
-      storage: acme.json
+      storage: /acme.json
       httpChallenge:
         entryPoint: web
 
 providers:
   # Docker provider to auto-discover services from container labels
   docker:
-    exposedByDefault: false
     watch: true
     network: traefik-net
+    exposedByDefault: false
 
-  # File provider to load routing rules and middlewares from a separate file
   file:
-    filename: traefik_dynamic.yml
-    watch: true
+    filename: /traefik_dynamic.yml
+# serversTransport:
+#     insecureSkipVerify: true

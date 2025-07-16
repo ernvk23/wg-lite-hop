@@ -15,8 +15,6 @@ services:
     image: traefik:3.3
     container_name: traefik
     restart: unless-stopped
-    networks:
-      - traefik-net
     ports:
       - "80:80/tcp"
       - "443:443/tcp"
@@ -26,33 +24,41 @@ services:
       - ./traefik/traefik.yml:/traefik.yml:ro
       - ./traefik/traefik_dynamic.yml:/traefik_dynamic.yml:ro
       - ./traefik/acme.json:/acme.json
-    environment:
-      - TRAEFIK_CERTIFICATESRESOLVERS_LETSENCRYPT_ACME_EMAIL=${TRAEFIK_ACME_EMAIL}
-      - AUTH_USER=${AUTH_USER}
-      - AUTH_PASS_HASH=${AUTH_PASS_HASH}
-      - DOMAIN=${DOMAIN}
+    command:
+      - --certificatesresolvers.letsencrypt.acme.email=${TRAEFIK_ACME_EMAIL}
+    networks:
+      - traefik-net
     labels:
-      # Only enable Traefik. The router and service are handled by the dynamic config and internal provider.
       - "traefik.enable=true"
+      # --- MIDDLEWARES (Defined once on the Traefik service) ---
+      - "traefik.http.middlewares.auth.basicauth.users=${AUTH_USER}:${AUTH_PASS_HASH}"
+      # Dashboard
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`${DOMAIN}`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))"
+      - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.traefik-dashboard.middlewares=auth"
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
+
 
   # AdGuard Home DNS ad blocker
   adguard:
     image: adguard/adguardhome:latest
     container_name: adguard
     restart: unless-stopped
+    volumes:
+      - adguard_work:/opt/adguardhome/work
+      - adguard_conf:/opt/adguardhome/conf
     networks:
       traefik-net:
         ipv4_address: 10.42.42.43
         ipv6_address: fdcc:ad94:bacf:61a3::43
-    volumes:
-      - adguard_work:/opt/adguardhome/work
-      - adguard_conf:/opt/adguardhome/conf
     labels:
       - "org.label-schema.schema-version=1.0"
-      # Enable Traefik for this container and tell it which port the service uses.
-      # The router is defined in traefik_dynamic.yml
       - "traefik.enable=true"
-      - "traefik.http.services.adguard.loadbalancer.server.port=3000"
+      - "traefik.http.routers.adguard-ui.rule=Host(`${DOMAIN}`) && PathPrefix(`/adguard`)"
+      - "traefik.http.routers.adguard-ui.entrypoints=websecure"
+      - "traefik.http.routers.adguard-ui.middlewares=auth, adguard-strip"
+      - "traefik.http.routers.adguard-ui.service=adguard"
+      - "traefik.http.services.adguard-ui.loadbalancer.server.port=3000"
 
   # WireGuard VPN server with web UI
   wg-easy:
@@ -83,9 +89,12 @@ services:
       - net.ipv6.conf.all.forwarding=1
       - net.ipv6.conf.default.forwarding=1
     labels:
-      # Enable Traefik for this container and tell it which port the service uses.
-      # The router is defined in traefik_dynamic.yml
       - "traefik.enable=true"
+      - "traefik.http.routers.wg-easy.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.wg-easy.entrypoints=websecure"
+      - "traefik.http.routers.wg-easy.middlewares=auth"
+      - "traefik.http.routers.wg-easy.service=wg-easy"
+      - "traefik.http.routers.wg-easy.priority=1"
       - "traefik.http.services.wg-easy.loadbalancer.server.port=51821"
 
 # Network configuration
