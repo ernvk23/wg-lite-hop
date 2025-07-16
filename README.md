@@ -32,6 +32,18 @@ This project, inspired by and adapted from [wg-easy](https://github.com/wg-easy/
     sudo docker compose up -d
     ```
 
+## Uninstall
+**NUCLEAR: Running this removes EVERYTHING leaving only docker engine**
+    - Stops ALL the containers
+    - Removes ALL volumes/images/containers/networks
+    - Removes ALL non default interfaces created by the containers on firewall-cmd
+    - Deletes the project's folder with it's .env files
+
+***(USE WITH CAUTION)***
+```bash
+    sudo ./uninstall.sh
+```
+
 ## Access
 
 *   WireGuard Web UI: `https://your_domain.com`
