@@ -37,7 +37,6 @@ echo ""
 echo "[2/2] Deleting all containers/volumes/networks/interfaces/files"
 docker system prune -a -f --volumes
 for i in $(firewall-cmd --get-active-zones | grep interfaces | grep -v -A1 "$(firewall-cmd --get-default-zone)" | tail -n +2 | awk '{print $2}'); do sudo firewall-cmd --change-interface=$i --zone=$(firewall-cmd --get-default-zone); done; sudo firewall-cmd --reload
-cd ..
-rm -rf wg-lite-hop-main
+cd && rm -rf wg-lite-hop-main
 echo ""
 echo "--- Uninstall Complete ---"
