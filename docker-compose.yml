@@ -5,7 +5,8 @@
 # AdGuard volumes are also Docker-managed.
 # Traefik config files are mounted from the host (bind mounts) and don't need to be declared here.
 volumes:
-  etc_wireguard: {}
+  etc_wireguard:
+    name: "etc_wireguard"
 
 services:
   # Traefik reverse proxy - handles SSL/TLS termination and routing
@@ -73,10 +74,23 @@ services:
         ipv4_address: 10.42.42.42
         ipv6_address: fdcc:ad94:bacf:61a3::42
     environment:
-      # Sets the DNS for the CLIENTS that connect to the VPN. This is the crucial one.
-      - WG_DNS=10.42.42.43,fdcc:ad94:bacf:61a3::43
+      # Unattended setup (Group 1 + DNS)
+      - INIT_ENABLED=true
+      - INIT_USERNAME=${WG_ADMIN_USER}  # Set in .env
+      - INIT_PASSWORD=${WG_ADMIN_PASS}  # Set in .env
+      - INIT_HOST=${DOMAIN}
+      - INIT_PORT=51820
+      - INIT_DNS=10.42.42.43,fdcc:ad94:bacf:61a3::43  # AdGuard IPs
+      
+      # VPN network ranges (Group 3 - wg-easy defaults)
+      - INIT_IPV4_CIDR=10.8.0.0/24
+      - INIT_IPV6_CIDR=fd42:42:42::/112
+
+
       # Sets the DNS for the WireGuard CONTAINER ITSELF. Good for consistency.
+      - WG_DNS=10.42.42.43,fdcc:ad94:bacf:61a3::43
       - WG_DEFAULT_DNS=10.42.42.43,fdcc:ad94:bacf:61a3::43
+
       - WG_POST_UP=iptables -t nat -A PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination 10.42.42.43; iptables -t nat -A PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination 10.42.42.43; ip6tables -t nat -A PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43; ip6tables -t nat -A PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43
       - WG_POST_DOWN=iptables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination 10.42.42.43 || true; iptables -t nat -D PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination 10.42.42.43 || true; ip6tables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43 || true; ip6tables -t nat -D PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43 || true
     ports:

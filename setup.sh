@@ -51,13 +51,30 @@ TRAEFIK_ACME_EMAIL=your-email (e.g. example@hotmail.com)
 
 # Web UI Authentication
 AUTH_USER=your_username
+
 # Generate a new password hash with: docker run --rm httpd:2.4-alpine htpasswd -nbB user password | sed 's/\$/\$\$/g'
+
 AUTH_PASS_HASH=your_generated_hash
+
+# Password in here is used for creating the fist user,
+# though after install is advisable to remove it
+WG_ADMIN_USER=your_username 
+# This password should not be a hashed password
+# can generat with `openssl rand -base64 16`
+WG_ADMIN_PASS=your_password_not_hashed
+
 EOF
 fi
 
 # Create traefik directory and acme.json for Let's Encrypt certificates
 echo "Creating Traefik acme.json file..."
+if [ -f ./traefik/acme.json ]; then
+  echo "Backing up existing acme.json to /acme.json.bak ..."
+  cp ./traefik/acme.json /acme.json.bak
+  echo "Backup created."
+else
+  echo "No existing acme.json found, nothing to back up."
+fi
 mkdir -p ./traefik
 touch ./traefik/acme.json
 chmod 600 ./traefik/acme.json
