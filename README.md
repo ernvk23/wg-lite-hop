@@ -1,26 +1,21 @@
 # Easy WireGuard VPN with Traefik and AdGuard Home
 
-This project, inspired by and adapted from [wg-easy](https://github.com/wg-easy/wg-easy), sets up a WireGuard VPN server with a web UI for easy configuration, protected by Traefik as a reverse proxy with automatic Let's Encrypt SSL/TLS certificates. It also includes AdGuard Home for network-wide ad and tracker blocking.
-
-
+This project, inspired by and adapted from [wg-easy](https://github.com/wg-easy/wg-easy), sets up a WireGuard VPN server with a web UI for easy configuration, protected by Traefik as a reverse proxy with automatic Let's Encrypt SSL/TLS certificates. It also includes AdGuard Home for network-wide ad/tracker blocking.
 
 ## Prerequisites
 
 *   A Linux server with a public IP address and a RHEL-compatible distribution installed.
     *   **Tested on: AlmaLinux 9.6**
 *   A domain name pointing to your server's IP address.
-*   `curl` and `tar` must be installed to download the repository.
+*   `curl` and `tar` installed.
 
 ## Setup
 
 1. **Quick Install & Setup (AlmaLinux/RHEL):**
 
-   ```bash
-   sudo yum install -y curl tar && \
-   curl -L https://github.com/ernvk23/wg-lite-hop/archive/refs/heads/main.tar.gz | tar xz && \
-   cd wg-lite-hop-main && \
-   sudo ./setup.sh
-   ```
+    ```bash
+    curl -L https://github.com/ernvk23/wg-lite-hop/archive/refs/heads/main.tar.gz | tar xz && cd wg-lite-hop-main && chmod +x setup.sh && sudo ./setup.sh
+    ```
 
 2.  **Modify the `.env` file:**
 
@@ -38,10 +33,11 @@ This project, inspired by and adapted from [wg-easy](https://github.com/wg-easy/
     - Removes ALL volumes/images/containers/networks
     - Removes ALL non default interfaces created by the containers on firewall-cmd
     - Deletes the project's folder with it's .env files
+    - Deletes ./traefik/acme.json with its let's encrypt certificate (if run many times let's encrypt rate limit will be hit)
 
 ***(USE WITH CAUTION)***
 ```bash
-    sudo ./uninstall.sh
+    chmod +x setup.sh && sudo ./uninstall.sh
 ```
 
 ## Access
@@ -56,7 +52,6 @@ Use the credentials defined in your `.env` file to access the web UIs.
 
 1.  Connect to the WireGuard VPN using a client (see the WireGuard web UI for configuration).
 2.  Your internet traffic will now be routed through the VPN, and DNS queries will be filtered by AdGuard Home.
-
 
 ## Licensing
 

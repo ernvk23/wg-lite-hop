@@ -69,8 +69,8 @@ fi
 # Create traefik directory and acme.json for Let's Encrypt certificates
 echo "Creating Traefik acme.json file..."
 if [ -f ./traefik/acme.json ]; then
-  echo "Backing up existing acme.json to /acme.json.bak ..."
-  cp ./traefik/acme.json /acme.json.bak
+  echo "Backing up existing acme.json to ~/acme.json.bak ..."
+  cp ./traefik/acme.json ~/acme.json.bak
   echo "Backup created."
 else
   echo "No existing acme.json found, nothing to back up."

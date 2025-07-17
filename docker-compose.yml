@@ -6,7 +6,7 @@
 # Traefik config files are mounted from the host (bind mounts) and don't need to be declared here.
 volumes:
   etc_wireguard:
-    name: "etc_wireguard"
+    name: etc_wireguard
 
 services:
   # Traefik reverse proxy - handles SSL/TLS termination and routing
