@@ -46,9 +46,9 @@ This project, inspired by and adapted from [wg-easy](https://github.com/wg-easy/
 
 ## Access
 
-*   WireGuard Web UI: `https://your_domain.com`
-*   Traefik Dashboard: `https://your_domain.com/dashboard`
-*   AdGuard Home: `https://your_domain.com/adguard`
+*   WireGuard Web UI: `https://your_domain`
+*   Traefik Dashboard: `https://traefik.your_domain`
+*   AdGuard Home: `https://adguard.your_domain`
 
 Use the credentials defined in your `.env` file to access the web UIs.
 

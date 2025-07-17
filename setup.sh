@@ -46,12 +46,12 @@ echo "Firewall configured. Ports 80, 443, 443/udp, and 51820/udp are now open."
 if [ ! -f .env ]; then
     echo "Creating .env file..."
     cat << EOF > .env
-DOMAIN=your-domain.com
-TRAEFIK_ACME_EMAIL=your-email@domain.com
+DOMAIN=your-domain (e.g. example.com)
+TRAEFIK_ACME_EMAIL=your-email (e.g. example@hotmail.com)
 
 # Web UI Authentication
 AUTH_USER=your_username
-# Generate a new password hash with: docker run --rm httpd:2.4-alpine htpasswd -nbB user password
+# Generate a new password hash with: docker run --rm httpd:2.4-alpine htpasswd -nbB user password | sed 's/\$/\$\$/g'
 AUTH_PASS_HASH=your_generated_hash
 EOF
 fi

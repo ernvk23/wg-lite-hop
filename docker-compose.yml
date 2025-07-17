@@ -32,7 +32,7 @@ services:
       - "traefik.http.middlewares.auth.basicauth.users=${AUTH_USER}:${AUTH_PASS_HASH}"
       
       # Dashboard routers
-      - "traefik.http.routers.traefik-ui.rule=Host(`${DOMAIN}`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))"
+      - "traefik.http.routers.traefik-ui.rule=Host(`traefik.${DOMAIN}`)"
       - "traefik.http.routers.traefik-ui.entrypoints=websecure"
       - "traefik.http.routers.traefik-ui.middlewares=auth"
       - "traefik.http.routers.traefik-ui.service=api@internal"
@@ -54,9 +54,9 @@ services:
       - "org.label-schema.schema-version=1.0"
       - "traefik.enable=true"
       # Routers
-      - "traefik.http.routers.adguard-ui.rule=Host(`${DOMAIN}`) && PathPrefix(`/adguard`)"
+      - "traefik.http.routers.adguard-ui.rule=Host(`adguard.${DOMAIN}`)"
       - "traefik.http.routers.adguard-ui.entrypoints=websecure"
-      - "traefik.http.routers.adguard-ui.middlewares=auth,adguard-strip@file"
+      - "traefik.http.routers.adguard-ui.middlewares=auth"
       - "traefik.http.routers.adguard-ui.service=adguard"
       # Services
       - "traefik.http.services.adguard.loadbalancer.server.port=3000"
@@ -113,6 +113,6 @@ networks:
         - subnet: fdcc:ad94:bacf:61a3::/64
 
 # Routes:
-# - https://your_domain.com           -> WireGuard web UI
-# - https://your_domain.com/dashboard -> Traefik dashboard
-# - https://your_domain.com/adguard   -> AdGuard Home web UI
+# - https://your_domain           -> WireGuard web UI
+# - https://traefik.your_domain   -> Traefik dashboard
+# - https://adguard.your_domain   -> AdGuard Home web UI

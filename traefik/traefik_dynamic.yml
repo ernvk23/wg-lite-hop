@@ -1,10 +1,5 @@
 http:
   middlewares:
-    adguard-strip:
-      stripPrefix:
-        prefixes:
-          - /adguard
-
     # A recommended middleware for security, tells browsers to only use HTTPS
     hsts:
       headers:
