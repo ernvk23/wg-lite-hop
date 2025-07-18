@@ -27,26 +27,15 @@ This project, inspired by and adapted from [wg-easy](https://github.com/wg-easy/
     sudo docker compose up -d
     ```
 
-## Uninstall
-**NUCLEAR: Running this removes EVERYTHING leaving only docker engine**
-    - Stops ALL the containers
-    - Removes ALL volumes/images/containers/networks
-    - Removes ALL non default interfaces created by the containers on firewall-cmd
-    - Deletes the project's folder with it's .env files
-    - Deletes ./traefik/acme.json with its let's encrypt certificate (if run many times let's encrypt rate limit will be hit)
-
-***(USE WITH CAUTION)***
-```bash
-    chmod +x setup.sh && sudo ./uninstall.sh
-```
-
 ## Access
 
-*   WireGuard Web UI: `https://your_domain`
-*   Traefik Dashboard: `https://traefik.your_domain`
-*   AdGuard Home: `https://adguard.your_domain`
+*   WireGuard Web UI (to set up clients): `https://your_domain`
+*   AdGuard Home UI (configure ad/trackers block lists): `https://adguard.your_domain`
+*   Traefik Dashboard UI (check server's metrics, *optional*): `https://traefik.your_domain`
 
-Use the credentials defined in your `.env` file to access the web UIs.
+
+Use the credentials defined in your `.env` file to access the web UIs. 
+*Note:* The first password requested is for logging into Traefik. (This may appear as a pop window on an empty screen)
 
 ## Usage
 
