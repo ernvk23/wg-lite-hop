@@ -60,7 +60,7 @@ AUTH_PASS_HASH=your_generated_hash
 # though after install is advisable to remove it
 WG_ADMIN_USER=your_username 
 # This password should not be a hashed password
-# can generat with `openssl rand -base64 16`
+# can generat with openssl rand -base64 16
 WG_ADMIN_PASS=your_password_not_hashed
 
 EOF
@@ -92,6 +92,26 @@ cat << EOF > instructions.txt
 Pending Tasks:
 1. Edit the .env file with your actual domain, email, and a new password hash.
 2. Start the services: sudo docker compose up -d
+
+2.1. ONLY if the previous step failed or something is not working as expected:
+Some versions can introduce/deprecate features that break the functionality of the 
+system, when v1.0 was built the images used for testing were:
+
+adguard/adguardhome:latest
+ghcr.io/wg-easy/wg-easy:15
+traefik:3.3
+
+2.2. To fix the problem change this on docker-compose.yml:
+services -> traefik -> image (replace the whole line for the one below, make sure the identing is correct)
+image: traefik@sha256:2cd5cc75530c8d07ae0587c743d23eb30cae2436d07017a5ff78498b1a43d09f
+
+services -> adguard -> image (replace the whole line for the one below, make sure the identing is correct)
+image: adguard/adguardhome@sha256:320ab49bd5f55091c7da7d1232ed3875f687769d6bb5e55eb891471528e2e18f
+
+services -> wg-easy -> image (replace the whole line for the one below, make sure the identing is correct)
+image: ghcr.io/wg-easy/wg-easy@sha256:bb8152762c36f824eb42bb2f3c5ab8ad952818fbef677d584bc69ec513b251b0
+
+2.3. Run: sudo docker compose up -d
 EOF
 
 echo -e "\nInstructions file created. Contents:"

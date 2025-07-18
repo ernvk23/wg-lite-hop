@@ -11,7 +11,8 @@ volumes:
 services:
   # Traefik reverse proxy - handles SSL/TLS termination and routing
   traefik:
-    image: traefik:3.3
+    # image: traefik:3.3
+    image: traefik@sha256:2cd5cc75530c8d07ae0587c743d23eb30cae2436d07017a5ff78498b1a43d09f
     container_name: traefik
     restart: unless-stopped
     ports:
@@ -41,7 +42,8 @@ services:
 
   # AdGuard Home DNS ad blocker
   adguard:
-    image: adguard/adguardhome:latest
+    # image: adguard/adguardhome:latest
+    image: adguard/adguardhome@sha256:320ab49bd5f55091c7da7d1232ed3875f687769d6bb5e55eb891471528e2e18f
     container_name: adguard
     restart: unless-stopped
     volumes:
@@ -66,7 +68,8 @@ services:
 
   # WireGuard VPN server with web UI
   wg-easy:
-    image: ghcr.io/wg-easy/wg-easy:15
+    # image: ghcr.io/wg-easy/wg-easy:15
+    image: ghcr.io/wg-easy/wg-easy@sha256:bb8152762c36f824eb42bb2f3c5ab8ad952818fbef677d584bc69ec513b251b0
     container_name: wg-easy
     restart: unless-stopped
     networks:
