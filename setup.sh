@@ -95,7 +95,7 @@ Pending Tasks:
 
 2.1. ONLY if the previous step failed or something is not working as expected:
 Some versions can introduce/deprecate features that break the functionality of the 
-system, when v1.0 was built the images used for testing were:
+system, when v0.9 was built the images used for testing were:
 
 adguard/adguardhome:latest
 ghcr.io/wg-easy/wg-easy:15
