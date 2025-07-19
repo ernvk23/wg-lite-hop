@@ -42,7 +42,24 @@ Use the credentials defined in your `.env` file to access the web UIs.
 1.  Connect to the WireGuard VPN using a client (see the WireGuard web UI for configuration).
 2.  Your internet traffic will now be routed through the VPN, and DNS queries will be filtered by AdGuard Home.
 
-## Visual diagram
+## Uninstall
+
+To completely remove the `wg-lite-hop` stack and all its data from your server, you can use the provided uninstall script.
+
+> **Warning: This is a destructive operation.** The script is designed to be thorough and will permanently remove:
+> *   All Docker containers and networks for this project.
+> *   All associated Docker volumes, which includes all **WireGuard client data** and **AdGuard Home settings**.
+> *   The entire project directory (`wg-lite-hop-main`), including all local configurations and your `.env` file.
+> *   **All unused Docker data on your system (images, volumes, etc.), which may affect other unrelated projects.**
+>
+> Please back up any data you wish to keep before proceeding.
+
+To run the uninstaller, execute the following command from within the project directory. The script will ask for final confirmation before deleting anything.
+```bash
+chmod +x uninstall.sh && sudo ./uninstall.sh
+```
+
+## TL;DR
 
 ![Visual Diagram](./diagram.png)
 
