@@ -61,7 +61,7 @@ chmod +x uninstall.sh && sudo ./uninstall.sh
 
 ## TL;DR
 
-![Visual Diagram](./diagram.png)
+![Visual Diagram](./diagram.jpg)
 
 
 ## Licensing
