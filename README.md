@@ -47,14 +47,15 @@ Use the credentials defined in your `.env` file to access the web UIs.
 To completely remove the `wg-lite-hop` stack and all its data from your server, you can use the provided uninstall script.
 
 > **Warning: This is a destructive operation.** The script is designed to be thorough and will permanently remove:
-> *   All Docker containers and networks for this project.
+> *   All Docker containers, images and networks for this project.
 > *   All associated Docker volumes, which includes all **WireGuard client data** and **AdGuard Home settings**.
-> *   The entire project directory (`wg-lite-hop-main`), including all local configurations and your `.env` file.
-> *   **All unused Docker data on your system (images, volumes, etc.), which may affect other unrelated projects.**
->
-> Please back up any data you wish to keep before proceeding.
+> *   The project directory itself with all its subdirectories and files (`wg-lite-hop-main`).
+> *   The script also reloads the firewall.
 
-To run the uninstaller, execute the following command from within the project directory. The script will ask for final confirmation before deleting anything.
+>
+> The script will prompt for confirmation before proceeding and offers an option to back up `acme.json` and `.env` to `~/` before deletion.
+>
+> To run the uninstaller, execute the following command from within the project directory. The script will ask for final confirmation before deleting anything.
 ```bash
 chmod +x uninstall.sh && sudo ./uninstall.sh
 ```

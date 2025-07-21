@@ -24,13 +24,22 @@ if [ -f "./traefik/acme.json" ]; then
         cp ./traefik/acme.json ~/acme.json.bak
     fi
 fi
+# --- Optional .env Backup ---
+if [ -f "./.env" ]; then
+    read -p "Save .env file? (y/N) " -n 1 -r && echo
+    if [[ "$REPLY" =~ ^[Yy]$ ]]; then
+        echo "Saving .env to ~/.env.bak..."
+        cp ./.env ~/.env.bak
+    fi
+fi
+echo ""
 echo ""
 
 echo "--- Starting Uninstall ---"
 
 # --- Docker Cleanup ---
 echo "[1/2] Cleaning Docker resources..."
-docker compose down -v --remove-orphans && docker system prune -a -f --volumes
+docker compose down -v --rmi all --remove-orphans
 echo "Docker cleanup complete."
 echo ""
 
@@ -42,7 +51,7 @@ echo ""
 
 # --- Local Configuration & Project Directory Cleanup ---
 echo "Deleting local configuration and project directory..."
-rm -rf wg-easy adguard traefik .env ~/wg-lite-hop-main
+rm -rf ~/wg-lite-hop-main
 echo "Cleanup complete."
 echo ""
 
