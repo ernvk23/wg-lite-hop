@@ -35,7 +35,7 @@ This project, inspired by and adapted from [wg-easy](https://github.com/wg-easy/
 
 
 Use the credentials defined in your `.env` file to access the web UIs. 
-*Note:* The first password requested is for logging into Traefik. This may appear as a pop-up window on an otherwise empty screen.
+*Note:* When accessing the web UIs, your browser will first show a pop-up asking for a username and password. This is the basic authentication layer provided by Traefik. Use the `AUTH_USER` from your `.env` file and the password you used to generate the `AUTH_PASS_HASH` value.
 
 ## Usage
 
@@ -46,15 +46,14 @@ Use the credentials defined in your `.env` file to access the web UIs.
 
 To completely remove the `wg-lite-hop` stack and all its data from your server, you can use the provided uninstall script.
 
-> **Warning: This is a destructive operation.** The script is designed to be thorough and will permanently remove:
-> *   All Docker containers, images and networks for this project.
-> *   All associated Docker volumes, which includes all **WireGuard client data** and **AdGuard Home settings**.
-> *   The project directory itself with all its subdirectories and files (`wg-lite-hop-main`).
-> *   The script also reloads the firewall.
-
->
-> The script will prompt for confirmation before proceeding and offers an option to back up `acme.json` and `.env` to `~/` before deletion.
->
+> **Warning: This is a destructive operation.** This script is designed to be thorough and will permanently remove:
+> *   All Docker containers, images, and networks associated with this project.
+> *   All associated Docker volumes, which includes your **WireGuard client configurations** and **AdGuard Home settings**.
+> *   The firewall rules that were added during setup (`80/tcp`, `443/tcp`, `443/udp`, `51820/udp`).
+> *   The project directory itself (`wg-lite-hop-main`), including all configuration files.
+> 
+> Before proceeding, the script will ask for confirmation. It also offers a convenient option to back up your `.env` and `traefik/acme.json` files to your user's home directory (`~/.env.bak` and `~/acme.json.bak`).
+> 
 > To run the uninstaller, execute the following command from within the project directory. The script will ask for final confirmation before deleting anything.
 ```bash
 chmod +x uninstall.sh && sudo ./uninstall.sh

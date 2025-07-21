@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Exit immediately if a command exits with a non-zero status or if a command in a pipeline fails.
+set -e
+set -o pipefail
+
 echo "Setting up WireGuard with Traefik..."
 
 if [ "$EUID" -ne 0 ]; then 

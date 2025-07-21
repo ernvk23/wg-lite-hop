@@ -2,6 +2,9 @@
 
 # Uninstalls the wg-lite-hop stack.
 
+# Exit immediately if a command exits with a non-zero status.
+set -e
+
 # --- Safety Check ---
 if [ "$EUID" -ne 0 ]; then
   echo "Error: This script must be run with sudo." >&2
@@ -9,50 +12,62 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 # --- Confirmation ---
-echo "This will stop/delete Docker containers, networks, volumes, and local config."
+echo "This will permanently remove the wg-lite-hop stack, including all Docker containers, networks, volumes (WireGuard client data, AdGuard settings), firewall rules, and the project directory itself."
 read -p "Are you sure you want to uninstall? (y/N) " -n 1 -r && echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     echo "Uninstall cancelled."
     exit 0
 fi
 
-# --- Optional acme.json Backup ---
+# --- Optional Backups ---
 if [ -f "./traefik/acme.json" ]; then
-    read -p "Save acme.json? (y/N) " -n 1 -r && echo
+    read -p "Backup acme.json to your home directory? (y/N) " -n 1 -r && echo
     if [[ "$REPLY" =~ ^[Yy]$ ]]; then
-        echo "Saving acme.json to ~/acme.json.bak..."
         cp ./traefik/acme.json ~/acme.json.bak
+        echo "Saved acme.json to ~/acme.json.bak"
     fi
 fi
 # --- Optional .env Backup ---
 if [ -f "./.env" ]; then
-    read -p "Save .env file? (y/N) " -n 1 -r && echo
+    read -p "Backup .env file to your home directory? (y/N) " -n 1 -r && echo
     if [[ "$REPLY" =~ ^[Yy]$ ]]; then
-        echo "Saving .env to ~/.env.bak..."
         cp ./.env ~/.env.bak
+        echo "Saved .env to ~/.env.bak"
     fi
 fi
 echo ""
-echo ""
 
 echo "--- Starting Uninstall ---"
-
 # --- Docker Cleanup ---
-echo "[1/2] Cleaning Docker resources..."
-docker compose down -v --rmi all --remove-orphans
-echo "Docker cleanup complete."
+echo "[1/3] Cleaning Docker resources..."
+if command -v docker &> /dev/null && [ -f "docker-compose.yml" ]; then
+    docker compose down -v --rmi all --remove-orphans
+    echo "Docker cleanup complete."
+else
+    echo "Docker or docker-compose.yml not found, skipping Docker cleanup."
+fi
 echo ""
 
-# --- Firewall Reload ---
-echo "[2/2] Reloading firewall..."
-firewall-cmd --reload
-echo "Firewall reloaded."
+# --- Firewall Cleanup ---
+echo "[2/3] Removing firewall rules..."
+if command -v firewall-cmd &> /dev/null; then
+    firewall-cmd --permanent --remove-port=80/tcp || true
+    firewall-cmd --permanent --remove-port=443/tcp || true
+    firewall-cmd --permanent --remove-port=443/udp || true
+    firewall-cmd --permanent --remove-port=51820/udp || true
+    firewall-cmd --reload
+    echo "Firewall rules removed and firewall reloaded."
+else
+    echo "firewall-cmd not found, skipping firewall cleanup."
+fi
 echo ""
 
 # --- Local Configuration & Project Directory Cleanup ---
-echo "Deleting local configuration and project directory..."
-rm -rf ~/wg-lite-hop-main
-echo "Cleanup complete."
+echo "[3/3] Deleting project directory..."
+PROJECT_DIR_NAME=$(basename "$PWD")
+cd ..
+rm -rf "./$PROJECT_DIR_NAME"
+echo "Project directory '$PROJECT_DIR_NAME' removed."
 echo ""
 
 echo "--- Uninstall Complete ---"
