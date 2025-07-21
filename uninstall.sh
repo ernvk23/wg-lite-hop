@@ -29,6 +29,14 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
 fi
 
 echo ""
+read -p "Do you want to save your acme.json file? (y/N) " -n 1 -r
+echo # Move to a new line
+if [[ "$REPLY" =~ ^[Yy]$ ]]; then
+    echo "Saving acme.json to ~/acme.json.bak..."
+    cp ./traefik/acme.json ~/acme.json.bak
+    echo "acme.json saved."
+fi
+echo ""
 echo "--- Starting Full Uninstall ---"
 
 echo "[1/2] Stopping and removing Docker containers, volumes, and networks..."

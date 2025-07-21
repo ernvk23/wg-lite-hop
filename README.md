@@ -35,7 +35,7 @@ This project, inspired by and adapted from [wg-easy](https://github.com/wg-easy/
 
 
 Use the credentials defined in your `.env` file to access the web UIs. 
-*Note:* The first password requested is for logging into Traefik. (This may appear as a pop window on an empty screen)
+*Note:* The first password requested is for logging into Traefik. This may appear as a pop-up window on an otherwise empty screen.
 
 ## Usage
 
@@ -61,7 +61,10 @@ chmod +x uninstall.sh && sudo ./uninstall.sh
 
 ## TL;DR
 
+This section provides a high-level overview of the project architecture.
+
 ![Visual Diagram](./diagram.jpg)
+Image Credit: Diagram by ernvk23
 
 
 ## Licensing
