@@ -1,6 +1,20 @@
 # Easy WireGuard VPN with Traefik and AdGuard Home
 
-This project, inspired by and adapted from [wg-easy](https://github.com/wg-easy/wg-easy), sets up a WireGuard VPN server with a web UI for easy configuration, protected by Traefik as a reverse proxy with automatic Let's Encrypt SSL/TLS certificates. It also includes AdGuard Home for network-wide ad/tracker blocking.
+A self-hosted WireGuard VPN with a web-based management UI, ad-blocking, and automatic HTTPS via Traefik. This project is inspired by and adapted from [wg-easy](https://github.com/wg-easy/wg-easy).
+
+## Overview
+
+![Visual Diagram](./diagram.jpg)
+*A high-level overview of the project architecture. (Image Credit: Diagram by ernvk23)*
+
+## Features
+
+*   **Easy WireGuard Management**: Simple web UI to add, remove, and manage VPN clients.
+*   **Automatic HTTPS**: Traefik handles SSL/TLS certificates from Let's Encrypt automatically.
+*   **Network-wide Ad Blocking**: Integrated AdGuard Home filters out ads and trackers for all VPN clients.
+*   **Secure Access**: Web UIs are protected by Basic Authentication.
+*   **Simple Setup**: Get up and running with a single setup script and `docker compose`.
+
 
 ## Prerequisites
 
@@ -58,14 +72,6 @@ To completely remove the `wg-lite-hop` stack and all its data from your server, 
 ```bash
 chmod +x uninstall.sh && sudo ./uninstall.sh
 ```
-
-## TL;DR
-
-This section provides a high-level overview of the project architecture.
-
-![Visual Diagram](./diagram.jpg)
-Image Credit: Diagram by ernvk23
-
 
 ## Licensing
 
