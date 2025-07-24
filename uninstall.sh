@@ -54,7 +54,7 @@ if command -v firewall-cmd &> /dev/null; then
     firewall-cmd --permanent --remove-port=80/tcp || true
     firewall-cmd --permanent --remove-port=443/tcp || true
     firewall-cmd --permanent --remove-port=443/udp || true
-    firewall-cmd --permanent --remove-port=51820/udp || true
+    firewall-cmd --permanent --remove-port=3074/udp || true
     firewall-cmd --reload
     echo "Firewall rules removed and firewall reloaded."
 else
