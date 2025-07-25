@@ -63,7 +63,7 @@ To completely remove the `wg-lite-hop` stack and all its data from your server, 
 > **Warning: This is a destructive operation.** This script is designed to be thorough and will permanently remove:
 > *   All Docker containers, images, and networks associated with this project.
 > *   All associated Docker volumes, which includes your **WireGuard client configurations** and **AdGuard Home settings**.
-> *   The firewall rules that were added during setup (`80/tcp`, `443/tcp`, `443/udp`, `3074/udp`).
+> *   The firewall rules that were added during setup (`80/tcp`, `443/tcp`, `443/udp`, `51820/udp`).
 > *   The project directory itself (`wg-lite-hop-main`), including all configuration files.
 > 
 > Before proceeding, the script will ask for confirmation. It also offers a convenient option to back up your `.env` and `traefik/acme.json` files to your user's home directory (`~/.env.bak` and `~/acme.json.bak`).
