@@ -41,10 +41,9 @@ fi
 echo "Configuring firewall ports..."
 sudo firewall-cmd --permanent --add-port=80/tcp
 sudo firewall-cmd --permanent --add-port=443/tcp
-sudo firewall-cmd --permanent --add-port=443/udp
-sudo firewall-cmd --permanent --add-port=51820/udp
+sudo firewall-cmd --permanent --add-port=443/udp # For WireGuard and Traefik's HTTP/3
 sudo firewall-cmd --reload
-echo "Firewall configured. Ports 80, 443, 443/udp, and 51820/udp are now open."
+echo "Firewall configured. Ports 80/tcp, 443/tcp, and 443/udp are now open."
 
 # Create .env file from template if it doesn't exist
 if [ ! -f .env ]; then

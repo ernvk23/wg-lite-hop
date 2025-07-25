@@ -53,8 +53,7 @@ echo "[2/3] Removing firewall rules..."
 if command -v firewall-cmd &> /dev/null; then
     firewall-cmd --permanent --remove-port=80/tcp || true
     firewall-cmd --permanent --remove-port=443/tcp || true
-    firewall-cmd --permanent --remove-port=443/udp || true
-    firewall-cmd --permanent --remove-port=51820/udp || true
+    firewall-cmd --permanent --remove-port=443/udp || true # For WireGuard and Traefik's HTTP/3
     firewall-cmd --reload
     echo "Firewall rules removed and firewall reloaded."
 else

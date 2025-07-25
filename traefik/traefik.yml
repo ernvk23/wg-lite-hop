@@ -21,7 +21,6 @@ entryPoints:
         - hsts@file # Global HSTS headers for security
       tls:
         certResolver: letsencrypt
-    http3: {}
 
 api:
   dashboard: true
