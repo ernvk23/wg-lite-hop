@@ -11,7 +11,7 @@ volumes:
 services:
   # Traefik reverse proxy - handles SSL/TLS termination and routing
   traefik:
-    image: traefik:3.3
+    image: traefik:3.5
     # Fallaback to older image if system breaks
     # image: traefik@sha256:2cd5cc75530c8d07ae0587c743d23eb30cae2436d07017a5ff78498b1a43d09f
     container_name: traefik
@@ -33,13 +33,12 @@ services:
       - "traefik.enable=true"
       # --- MIDDLEWARES (Defined once on the Traefik service) ---
       - "traefik.http.middlewares.auth.basicauth.users=${AUTH_USER}:${AUTH_PASS_HASH}"
-      
+
       # Dashboard routers
       - "traefik.http.routers.traefik-ui.rule=Host(`traefik.${DOMAIN}`)"
       - "traefik.http.routers.traefik-ui.entrypoints=websecure"
       - "traefik.http.routers.traefik-ui.middlewares=auth"
       - "traefik.http.routers.traefik-ui.service=api@internal"
-
 
   # AdGuard Home DNS ad blocker
   adguard:
@@ -68,7 +67,7 @@ services:
       # After succesfull creation on the web UI, the port should be changed to 80 (or the one set on the UI)
       # - "traefik.http.services.adguard.loadbalancer.server.port=80"
 
-  # WireGuard VPN server with web UI
+      # WireGuard VPN server with web UI
   wg-easy:
     image: ghcr.io/wg-easy/wg-easy:15
     # Fallaback to older image if system breaks
@@ -82,16 +81,15 @@ services:
     environment:
       # Unattended setup (Group 1 + DNS)
       - INIT_ENABLED=true
-      - INIT_USERNAME=${WG_ADMIN_USER}  # Set in .env
-      - INIT_PASSWORD=${WG_ADMIN_PASS}  # Set in .env
+      - INIT_USERNAME=${WG_ADMIN_USER} # Set in .env
+      - INIT_PASSWORD=${WG_ADMIN_PASS} # Set in .env
       - INIT_HOST=${DOMAIN}
       - INIT_PORT=51820
-      - INIT_DNS=10.42.42.43,fdcc:ad94:bacf:61a3::43  # AdGuard IPs
-      
+      - INIT_DNS=10.42.42.43,fdcc:ad94:bacf:61a3::43 # AdGuard IPs
+
       # VPN network ranges (Group 3 - wg-easy defaults)
       - INIT_IPV4_CIDR=10.8.0.0/24
       - INIT_IPV6_CIDR=fd42:42:42::/112
-
 
       # Sets the DNS for the WireGuard CONTAINER ITSELF. Good for consistency.
       - WG_DNS=10.42.42.43,fdcc:ad94:bacf:61a3::43
