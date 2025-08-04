@@ -32,12 +32,16 @@ services:
     labels:
       - "traefik.enable=true"
       # --- MIDDLEWARES (Defined once on the Traefik service) ---
+      # Basic Authentication for all UIs
       - "traefik.http.middlewares.auth.basicauth.users=${AUTH_USER}:${AUTH_PASS_HASH}"
+      # Rate limiting for all UIs to prevent brute-force/DDoS
+      - "traefik.http.middlewares.rate-limit.ratelimit.average=10" # requests per second
+      - "traefik.http.middlewares.rate-limit.ratelimit.burst=20"
 
       # Dashboard routers
       - "traefik.http.routers.traefik-ui.rule=Host(`traefik.${DOMAIN}`)"
       - "traefik.http.routers.traefik-ui.entrypoints=websecure"
-      - "traefik.http.routers.traefik-ui.middlewares=auth"
+      - "traefik.http.routers.traefik-ui.middlewares=auth,rate-limit"
       - "traefik.http.routers.traefik-ui.service=api@internal"
 
   # AdGuard Home DNS ad blocker
@@ -60,7 +64,7 @@ services:
       # Routers
       - "traefik.http.routers.adguard-ui.rule=Host(`adguard.${DOMAIN}`)"
       - "traefik.http.routers.adguard-ui.entrypoints=websecure"
-      - "traefik.http.routers.adguard-ui.middlewares=auth"
+      - "traefik.http.routers.adguard-ui.middlewares=auth,rate-limit"
       - "traefik.http.routers.adguard-ui.service=adguard"
       # Services
       - "traefik.http.services.adguard.loadbalancer.server.port=3000"
@@ -143,7 +147,7 @@ services:
       # Routers
       - "traefik.http.routers.wg-easy-ui.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.wg-easy-ui.entrypoints=websecure"
-      - "traefik.http.routers.wg-easy-ui.middlewares=auth"
+      - "traefik.http.routers.wg-easy-ui.middlewares=auth,rate-limit"
       - "traefik.http.routers.wg-easy-ui.service=wg-easy"
       - "traefik.http.routers.wg-easy-ui.priority=1"
       # Services
