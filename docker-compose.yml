@@ -83,6 +83,13 @@ services:
         ipv4_address: 10.42.42.42
         ipv6_address: fdcc:ad94:bacf:61a3::42
     environment:
+      # --- DDoS Protection Settings (tweak these values) ---
+      # Rate limit for incoming WireGuard packets per source IP.
+      # Default: 60 packets/minute allows for handshakes and keepalives without issue.
+      - WG_RATELIMIT_PACKETS=60/minute
+      # Burst allows a certain number of packets to exceed the rate limit temporarily.
+      # Default: 100 packets is generous for initial connections.
+      - WG_RATELIMIT_BURST=100
       # Unattended setup (Group 1 + DNS)
       - INIT_ENABLED=true
       - INIT_USERNAME=${WG_ADMIN_USER} # Set in .env
@@ -100,30 +107,39 @@ services:
       - WG_DEFAULT_DNS=10.42.42.43,fdcc:ad94:bacf:61a3::43
 
       - WG_POST_UP=|
-        # DNS redirection for clients
+        # --- DNS Redirection ---
+        # Force all DNS traffic from VPN clients through AdGuard Home.
         iptables -t nat -A PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination 10.42.42.43;
         iptables -t nat -A PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination 10.42.42.43;
         ip6tables -t nat -A PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43;
         ip6tables -t nat -A PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43;
-        # DDoS protection for WG port (IPv4)
+        # --- DDoS Protection for WireGuard Port (IPv4) ---
+        # Create a new chain for our rate-limiting rules.
         iptables -N WG_RATELIMIT || true;
+        # Flush the chain to ensure it's empty.
         iptables -F WG_RATELIMIT;
-        iptables -A WG_RATELIMIT -m hashlimit --hashlimit-name wg-limit --hashlimit-mode srcip --hashlimit-upto 60/minute --hashlimit-burst 100 -j ACCEPT;
+        # Rule 1: Accept packets from a source IP if it's within the defined rate limit.
+        iptables -A WG_RATELIMIT -m hashlimit --hashlimit-name wg-limit --hashlimit-mode srcip --hashlimit-upto ${WG_RATELIMIT_PACKETS} --hashlimit-burst ${WG_RATELIMIT_BURST} -j ACCEPT;
+        # Rule 2: Drop any packets that exceeded the limit.
         iptables -A WG_RATELIMIT -j DROP;
+        # Ensure no old rule exists before adding the new one.
         iptables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT 2>/dev/null || true;
+        # Direct all incoming UDP traffic on the WireGuard port to our rate-limiting chain.
         iptables -A INPUT -p udp --dport 51820 -j WG_RATELIMIT;
-        # DDoS protection for WG port (IPv6)
+        # --- DDoS Protection for WireGuard Port (IPv6) ---
         ip6tables -N WG_RATELIMIT || true;
         ip6tables -F WG_RATELIMIT;
-        ip6tables -A WG_RATELIMIT -m hashlimit --hashlimit-name wg6-limit --hashlimit-mode srcip --hashlimit-upto 60/minute --hashlimit-burst 100 -j ACCEPT;
+        ip6tables -A WG_RATELIMIT -m hashlimit --hashlimit-name wg6-limit --hashlimit-mode srcip --hashlimit-upto ${WG_RATELIMIT_PACKETS} --hashlimit-burst ${WG_RATELIMIT_BURST} -j ACCEPT;
         ip6tables -A WG_RATELIMIT -j DROP;
         ip6tables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT 2>/dev/null || true;
         ip6tables -A INPUT -p udp --dport 51820 -j WG_RATELIMIT
       - WG_POST_DOWN=|
+        # --- Cleanup DNS Redirection ---
         iptables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination 10.42.42.43 || true;
         iptables -t nat -D PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination 10.42.42.43 || true;
         ip6tables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43 || true;
         ip6tables -t nat -D PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43 || true;
+        # --- Cleanup DDoS Protection (IPv4 & IPv6) ---
         iptables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT || true; iptables -F WG_RATELIMIT || true; iptables -X WG_RATELIMIT || true;
         ip6tables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT || true; ip6tables -F WG_RATELIMIT || true; ip6tables -X WG_RATELIMIT || true
     ports:
