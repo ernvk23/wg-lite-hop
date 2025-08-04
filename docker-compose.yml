@@ -95,8 +95,33 @@ services:
       - WG_DNS=10.42.42.43,fdcc:ad94:bacf:61a3::43
       - WG_DEFAULT_DNS=10.42.42.43,fdcc:ad94:bacf:61a3::43
 
-      - WG_POST_UP=iptables -t nat -A PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination 10.42.42.43; iptables -t nat -A PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination 10.42.42.43; ip6tables -t nat -A PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43; ip6tables -t nat -A PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43
-      - WG_POST_DOWN=iptables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination 10.42.42.43 || true; iptables -t nat -D PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination 10.42.42.43 || true; ip6tables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43 || true; ip6tables -t nat -D PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43 || true
+      - WG_POST_UP=|
+        # DNS redirection for clients
+        iptables -t nat -A PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination 10.42.42.43;
+        iptables -t nat -A PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination 10.42.42.43;
+        ip6tables -t nat -A PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43;
+        ip6tables -t nat -A PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43;
+        # DDoS protection for WG port (IPv4)
+        iptables -N WG_RATELIMIT || true;
+        iptables -F WG_RATELIMIT;
+        iptables -A WG_RATELIMIT -m hashlimit --hashlimit-name wg-limit --hashlimit-mode srcip --hashlimit-upto 60/minute --hashlimit-burst 100 -j ACCEPT;
+        iptables -A WG_RATELIMIT -j DROP;
+        iptables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT 2>/dev/null || true;
+        iptables -A INPUT -p udp --dport 51820 -j WG_RATELIMIT;
+        # DDoS protection for WG port (IPv6)
+        ip6tables -N WG_RATELIMIT || true;
+        ip6tables -F WG_RATELIMIT;
+        ip6tables -A WG_RATELIMIT -m hashlimit --hashlimit-name wg6-limit --hashlimit-mode srcip --hashlimit-upto 60/minute --hashlimit-burst 100 -j ACCEPT;
+        ip6tables -A WG_RATELIMIT -j DROP;
+        ip6tables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT 2>/dev/null || true;
+        ip6tables -A INPUT -p udp --dport 51820 -j WG_RATELIMIT
+      - WG_POST_DOWN=|
+        iptables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination 10.42.42.43 || true;
+        iptables -t nat -D PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination 10.42.42.43 || true;
+        ip6tables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43 || true;
+        ip6tables -t nat -D PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43 || true;
+        iptables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT || true; iptables -F WG_RATELIMIT || true; iptables -X WG_RATELIMIT || true;
+        ip6tables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT || true; ip6tables -F WG_RATELIMIT || true; ip6tables -X WG_RATELIMIT || true
     ports:
       - "51820:51820/udp"
     volumes:
