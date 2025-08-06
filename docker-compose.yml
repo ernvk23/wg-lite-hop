@@ -35,13 +35,16 @@ services:
       # Basic Authentication for all UIs
       - "traefik.http.middlewares.auth.basicauth.users=${AUTH_USER}:${AUTH_PASS_HASH}"
       # Rate limiting for all UIs to prevent brute-force/DDoS
-      - "traefik.http.middlewares.rate-limit.ratelimit.average=10" # requests per second
-      - "traefik.http.middlewares.rate-limit.ratelimit.burst=20"
+      - "traefik.http.middlewares.rate-limit.ratelimit.average=5" # requests per second
+      - "traefik.http.middlewares.rate-limit.ratelimit.burst=10"
+      # Chain the middlewares together for easy application to all UIs.
+      # We rate-limit first, then authenticate.
+      - "traefik.http.middlewares.secure-chain.chain.middlewares=rate-limit,auth"
 
       # Dashboard routers
       - "traefik.http.routers.traefik-ui.rule=Host(`traefik.${DOMAIN}`)"
       - "traefik.http.routers.traefik-ui.entrypoints=websecure"
-      - "traefik.http.routers.traefik-ui.middlewares=auth,rate-limit"
+      - "traefik.http.routers.traefik-ui.middlewares=secure-chain@docker"
       - "traefik.http.routers.traefik-ui.service=api@internal"
 
   # AdGuard Home DNS ad blocker
@@ -64,9 +67,13 @@ services:
       # Routers
       - "traefik.http.routers.adguard-ui.rule=Host(`adguard.${DOMAIN}`)"
       - "traefik.http.routers.adguard-ui.entrypoints=websecure"
-      - "traefik.http.routers.adguard-ui.middlewares=auth,rate-limit"
+      - "traefik.http.routers.adguard-ui.middlewares=secure-chain@docker"
       - "traefik.http.routers.adguard-ui.service=adguard"
       # Services
+      # IMPORTANT: On first run, AdGuard setup is on port 3000.
+      # After completing the setup at https://adguard.your_domain,
+      # stop the stack (docker compose down), uncomment the line below,
+      # comment out the port 3000 line, and restart (docker compose up -d).
       - "traefik.http.services.adguard.loadbalancer.server.port=3000"
       # After succesfull creation on the web UI, the port should be changed to 80 (or the one set on the UI)
       # - "traefik.http.services.adguard.loadbalancer.server.port=80"
@@ -115,24 +122,24 @@ services:
         ip6tables -t nat -A PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43;
         # --- DDoS Protection for WireGuard Port (IPv4) ---
         # Create a new chain for our rate-limiting rules.
-        iptables -N WG_RATELIMIT || true;
+        iptables -N WG_RATELIMIT_V4 || true;
         # Flush the chain to ensure it's empty.
-        iptables -F WG_RATELIMIT;
+        iptables -F WG_RATELIMIT_V4;
         # Rule 1: Accept packets from a source IP if it's within the defined rate limit.
-        iptables -A WG_RATELIMIT -m hashlimit --hashlimit-name wg-limit --hashlimit-mode srcip --hashlimit-upto ${WG_RATELIMIT_PACKETS} --hashlimit-burst ${WG_RATELIMIT_BURST} -j ACCEPT;
+        iptables -A WG_RATELIMIT_V4 -m hashlimit --hashlimit-name wg-ratelimit-v4 --hashlimit-mode srcip --hashlimit-upto ${WG_RATELIMIT_PACKETS} --hashlimit-burst ${WG_RATELIMIT_BURST} -j ACCEPT;
         # Rule 2: Drop any packets that exceeded the limit.
-        iptables -A WG_RATELIMIT -j DROP;
+        iptables -A WG_RATELIMIT_V4 -j DROP;
         # Ensure no old rule exists before adding the new one.
-        iptables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT 2>/dev/null || true;
+        iptables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT_V4 2>/dev/null || true;
         # Direct all incoming UDP traffic on the WireGuard port to our rate-limiting chain.
-        iptables -A INPUT -p udp --dport 51820 -j WG_RATELIMIT;
+        iptables -A INPUT -p udp --dport 51820 -j WG_RATELIMIT_V4;
         # --- DDoS Protection for WireGuard Port (IPv6) ---
-        ip6tables -N WG_RATELIMIT || true;
-        ip6tables -F WG_RATELIMIT;
-        ip6tables -A WG_RATELIMIT -m hashlimit --hashlimit-name wg6-limit --hashlimit-mode srcip --hashlimit-upto ${WG_RATELIMIT_PACKETS} --hashlimit-burst ${WG_RATELIMIT_BURST} -j ACCEPT;
-        ip6tables -A WG_RATELIMIT -j DROP;
-        ip6tables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT 2>/dev/null || true;
-        ip6tables -A INPUT -p udp --dport 51820 -j WG_RATELIMIT
+        ip6tables -N WG_RATELIMIT_V6 || true;
+        ip6tables -F WG_RATELIMIT_V6;
+        ip6tables -A WG_RATELIMIT_V6 -m hashlimit --hashlimit-name wg-ratelimit-v6 --hashlimit-mode srcip --hashlimit-upto ${WG_RATELIMIT_PACKETS} --hashlimit-burst ${WG_RATELIMIT_BURST} -j ACCEPT;
+        ip6tables -A WG_RATELIMIT_V6 -j DROP;
+        ip6tables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT_V6 2>/dev/null || true;
+        ip6tables -A INPUT -p udp --dport 51820 -j WG_RATELIMIT_V6
       - WG_POST_DOWN=|
         # --- Cleanup DNS Redirection ---
         iptables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination 10.42.42.43 || true;
@@ -140,8 +147,8 @@ services:
         ip6tables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43 || true;
         ip6tables -t nat -D PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43 || true;
         # --- Cleanup DDoS Protection (IPv4 & IPv6) ---
-        iptables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT || true; iptables -F WG_RATELIMIT || true; iptables -X WG_RATELIMIT || true;
-        ip6tables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT || true; ip6tables -F WG_RATELIMIT || true; ip6tables -X WG_RATELIMIT || true
+        iptables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT_V4 || true; iptables -F WG_RATELIMIT_V4 || true; iptables -X WG_RATELIMIT_V4 || true;
+        ip6tables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT_V6 || true; ip6tables -F WG_RATELIMIT_V6 || true; ip6tables -X WG_RATELIMIT_V6 || true
     ports:
       - "51820:51820/udp"
     volumes:
@@ -163,9 +170,8 @@ services:
       # Routers
       - "traefik.http.routers.wg-easy-ui.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.wg-easy-ui.entrypoints=websecure"
-      - "traefik.http.routers.wg-easy-ui.middlewares=auth,rate-limit"
+      - "traefik.http.routers.wg-easy-ui.middlewares=secure-chain@docker"
       - "traefik.http.routers.wg-easy-ui.service=wg-easy"
-      - "traefik.http.routers.wg-easy-ui.priority=1"
       # Services
       - "traefik.http.services.wg-easy.loadbalancer.server.port=51821"
 
