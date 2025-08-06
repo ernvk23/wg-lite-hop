@@ -21,18 +21,22 @@ fi
 
 # --- Optional Backups ---
 if [ -f "./traefik/acme.json" ]; then
-    read -p "Backup acme.json to your home directory? (y/N) " -n 1 -r && echo
+    read -p "Backup acme.json to your home directory? (Y/n) " -n 1 -r && echo
     if [[ "$REPLY" =~ ^[Yy]$ ]]; then
-        cp ./traefik/acme.json ~/acme.json.bak
-        echo "Saved acme.json to ~/acme.json.bak"
+        TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+        BACKUP_FILE=~/acme.json.bak."$TIMESTAMP"
+        cp ./traefik/acme.json "$BACKUP_FILE"
+        echo "Saved acme.json to $BACKUP_FILE"
     fi
 fi
 # --- Optional .env Backup ---
 if [ -f "./.env" ]; then
-    read -p "Backup .env file to your home directory? (y/N) " -n 1 -r && echo
+    read -p "Backup .env file to your home directory? (Y/n) " -n 1 -r && echo
     if [[ "$REPLY" =~ ^[Yy]$ ]]; then
-        cp ./.env ~/.env.bak
-        echo "Saved .env to ~/.env.bak"
+        TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+        BACKUP_FILE=~/.env.bak."$TIMESTAMP"
+        cp ./.env "$BACKUP_FILE"
+        echo "Saved .env to $BACKUP_FILE"
     fi
 fi
 echo ""
