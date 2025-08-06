@@ -90,13 +90,6 @@ services:
         ipv4_address: 10.42.42.42
         ipv6_address: fdcc:ad94:bacf:61a3::42
     environment:
-      # --- DDoS Protection Settings (tweak these values) ---
-      # Rate limit for incoming WireGuard packets per source IP.
-      # Default: 60 packets/minute allows for handshakes and keepalives without issue.
-      - WG_RATELIMIT_PACKETS=60/minute
-      # Burst allows a certain number of packets to exceed the rate limit temporarily.
-      # Default: 100 packets is generous for initial connections.
-      - WG_RATELIMIT_BURST=100
       # Unattended setup (Group 1 + DNS)
       - INIT_ENABLED=true
       - INIT_USERNAME=${WG_ADMIN_USER} # Set in .env

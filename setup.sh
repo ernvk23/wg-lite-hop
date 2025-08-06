@@ -67,6 +67,14 @@ WG_ADMIN_USER=your_username
 # can generat with openssl rand -base64 16
 WG_ADMIN_PASS=your_password_not_hashed
 
+
+# --- DDoS Protection Settings (tweak these values only if experiencing connection issues) ---
+# Rate limit for incoming WireGuard packets per source IP.
+# Default: 60 packets/minute allows for handshakes and keepalives without issue.
+WG_RATELIMIT_PACKETS=60/minute
+# Burst allows a certain number of packets to exceed the rate limit temporarily.
+# Default: 100 packets is generous for initial connections.
+WG_RATELIMIT_BURST=100
 EOF
 fi
 
