@@ -113,42 +113,8 @@ services:
       - WG_DNS=10.42.42.43,fdcc:ad94:bacf:61a3::43
       - WG_DEFAULT_DNS=10.42.42.43,fdcc:ad94:bacf:61a3::43
 
-      - WG_POST_UP=|
-        # --- DNS Redirection ---
-        # Force all DNS traffic from VPN clients through AdGuard Home.
-        iptables -t nat -A PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination 10.42.42.43;
-        iptables -t nat -A PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination 10.42.42.43;
-        ip6tables -t nat -A PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43;
-        ip6tables -t nat -A PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43;
-        # --- DDoS Protection for WireGuard Port (IPv4) ---
-        # Create a new chain for our rate-limiting rules.
-        iptables -N WG_RATELIMIT_V4 || true;
-        # Flush the chain to ensure it's empty.
-        iptables -F WG_RATELIMIT_V4;
-        # Rule 1: Accept packets from a source IP if it's within the defined rate limit.
-        iptables -A WG_RATELIMIT_V4 -m hashlimit --hashlimit-name wg-ratelimit-v4 --hashlimit-mode srcip --hashlimit-upto ${WG_RATELIMIT_PACKETS} --hashlimit-burst ${WG_RATELIMIT_BURST} -j ACCEPT;
-        # Rule 2: Drop any packets that exceeded the limit.
-        iptables -A WG_RATELIMIT_V4 -j DROP;
-        # Ensure no old rule exists before adding the new one.
-        iptables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT_V4 2>/dev/null || true;
-        # Direct all incoming UDP traffic on the WireGuard port to our rate-limiting chain.
-        iptables -A INPUT -p udp --dport 51820 -j WG_RATELIMIT_V4;
-        # --- DDoS Protection for WireGuard Port (IPv6) ---
-        ip6tables -N WG_RATELIMIT_V6 || true;
-        ip6tables -F WG_RATELIMIT_V6;
-        ip6tables -A WG_RATELIMIT_V6 -m hashlimit --hashlimit-name wg-ratelimit-v6 --hashlimit-mode srcip --hashlimit-upto ${WG_RATELIMIT_PACKETS} --hashlimit-burst ${WG_RATELIMIT_BURST} -j ACCEPT;
-        ip6tables -A WG_RATELIMIT_V6 -j DROP;
-        ip6tables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT_V6 2>/dev/null || true;
-        ip6tables -A INPUT -p udp --dport 51820 -j WG_RATELIMIT_V6
-      - WG_POST_DOWN=|
-        # --- Cleanup DNS Redirection ---
-        iptables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination 10.42.42.43 || true;
-        iptables -t nat -D PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination 10.42.42.43 || true;
-        ip6tables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43 || true;
-        ip6tables -t nat -D PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43 || true;
-        # --- Cleanup DDoS Protection (IPv4 & IPv6) ---
-        iptables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT_V4 || true; iptables -F WG_RATELIMIT_V4 || true; iptables -X WG_RATELIMIT_V4 || true;
-        ip6tables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT_V6 || true; ip6tables -F WG_RATELIMIT_V6 || true; ip6tables -X WG_RATELIMIT_V6 || true
+      - WG_POST_UP=| iptables -t nat -A PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination 10.42.42.43; iptables -t nat -A PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination 10.42.42.43; ip6tables -t nat -A PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43; ip6tables -t nat -A PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43; iptables -N WG_RATELIMIT_V4 || true; iptables -F WG_RATELIMIT_V4; iptables -A WG_RATELIMIT_V4 -m hashlimit --hashlimit-name wg-ratelimit-v4 --hashlimit-mode srcip --hashlimit-upto ${WG_RATELIMIT_PACKETS} --hashlimit-burst ${WG_RATELIMIT_BURST} -j ACCEPT; iptables -A WG_RATELIMIT_V4 -j DROP; iptables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT_V4 2>/dev/null || true; iptables -A INPUT -p udp --dport 51820 -j WG_RATELIMIT_V4; ip6tables -N WG_RATELIMIT_V6 || true; ip6tables -F WG_RATELIMIT_V6; ip6tables -A WG_RATELIMIT_V6 -m hashlimit --hashlimit-name wg-ratelimit-v6 --hashlimit-mode srcip --hashlimit-upto ${WG_RATELIMIT_PACKETS} --hashlimit-burst ${WG_RATELIMIT_BURST} -j ACCEPT; ip6tables -A WG_RATELIMIT_V6 -j DROP; ip6tables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT_V6 2>/dev/null || true; ip6tables -A INPUT -p udp --dport 51820 -j WG_RATELIMIT_V6
+      - WG_POST_DOWN=| iptables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination 10.42.42.43 || true; iptables -t nat -D PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination 10.42.42.43 || true; ip6tables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43 || true; ip6tables -t nat -D PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43 || true; iptables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT_V4 || true; iptables -F WG_RATELIMIT_V4 || true; iptables -X WG_RATELIMIT_V4 || true; ip6tables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT_V6 || true; ip6tables -F WG_RATELIMIT_V6 || true; ip6tables -X WG_RATELIMIT_V6 || true
     ports:
       - "51820:51820/udp"
     volumes:
