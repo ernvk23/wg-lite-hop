@@ -12,7 +12,7 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 # --- Confirmation ---
-echo "This will permanently remove the wg-lite-hop stack, including all Docker containers, networks, volumes (WireGuard client data, AdGuard settings), firewall rules, and the project directory itself."
+echo "This will permanently remove the wg-lite-hop stack, including all Docker containers, networks, volumes (WireGuard client data, AdGuard settings), firewall rules, automated maintenance setup, and the project directory itself."
 read -p "Are you sure you want to uninstall? (y/N) " -n 1 -r && echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     echo "Uninstall cancelled."
@@ -43,7 +43,7 @@ echo ""
 
 echo "--- Starting Uninstall ---"
 # --- Docker Cleanup ---
-echo "[1/3] Cleaning Docker resources..."
+echo "[1/4] Cleaning Docker resources..."
 if command -v docker &> /dev/null && [ -f "docker-compose.yml" ]; then
     docker compose down -v --rmi all --remove-orphans
     echo "Docker cleanup complete."
@@ -53,7 +53,7 @@ fi
 echo ""
 
 # --- Firewall Cleanup ---
-echo "[2/3] Removing firewall rules..."
+echo "[2/4] Removing firewall rules..."
 if command -v firewall-cmd &> /dev/null; then
     firewall-cmd --permanent --remove-port=80/tcp || true
     firewall-cmd --permanent --remove-port=443/tcp || true
@@ -66,8 +66,27 @@ else
 fi
 echo ""
 
+# --- Maintenance Cleanup ---
+echo "[3/4] Removing automated maintenance setup..."
+# Remove cron jobs
+if crontab -l 2>/dev/null | grep -q 'wg-lite-hop-main/scripts/'; then
+    crontab -l 2>/dev/null | grep -v 'wg-lite-hop-main/scripts/' | crontab -
+    echo "Removed cron jobs."
+else
+    echo "No cron jobs found."
+fi
+
+# Remove sudoers rule
+if grep -q "# Maintenance script permissions" /etc/sudoers 2>/dev/null; then
+    sed -i '/# Maintenance script permissions/,+1d' /etc/sudoers
+    echo "Removed sudoers rule."
+else
+    echo "No sudoers rule found."
+fi
+echo ""
+
 # --- Local Configuration & Project Directory Cleanup ---
-echo "[3/3] Deleting project directory..."
+echo "[4/4] Deleting project directory..."
 PROJECT_DIR_NAME=$(basename "$PWD")
 cd ..
 rm -rf "./$PROJECT_DIR_NAME"

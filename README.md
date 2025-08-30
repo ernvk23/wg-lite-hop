@@ -13,8 +13,8 @@ A self-hosted WireGuard VPN with a web-based management UI, ad-blocking, and aut
 *   **Automatic HTTPS**: Traefik handles SSL/TLS certificates from Let's Encrypt automatically.
 *   **Network-wide Ad Blocking**: Integrated AdGuard Home filters out ads and trackers for all VPN clients.
 *   **Secure Access**: Web UIs are protected by Basic Authentication.
+*   **Automated Maintenance**: Weekly system updates and Docker container management with automatic reboots when needed.
 *   **Simple Setup**: Get up and running with a single setup script and `docker compose`.
-
 
 ## Prerequisites
 
@@ -41,12 +41,23 @@ A self-hosted WireGuard VPN with a web-based management UI, ad-blocking, and aut
     sudo docker compose up -d
     ```
 
+4.  **Set up automated maintenance (optional but recommended):**
+
+    ```bash
+    chmod +x scripts/add_update_cron.sh && ./scripts/add_update_cron.sh
+    ```
+
+    This sets up:
+    - Weekly system updates every Monday at 2 AM
+    - Automatic Docker image updates
+    - Automatic reboots when system updates require them
+    - Post-reboot container restart
+
 ## Access
 
 *   WireGuard Web UI (to set up clients): `https://your_domain`
 *   AdGuard Home UI (configure ad/trackers block lists): `https://adguard.your_domain`
 *   Traefik Dashboard UI (check server's metrics, *optional*): `https://traefik.your_domain`
-
 
 Use the credentials defined in your `.env` file to access the web UIs. 
 *Note:* When accessing the web UIs, your browser will first show a pop-up asking for a username and password. This is the basic authentication layer provided by Traefik. Use the `AUTH_USER` from your `.env` file and the password you used to generate the `AUTH_PASS_HASH` value.
@@ -55,6 +66,17 @@ Use the credentials defined in your `.env` file to access the web UIs.
 
 1.  Connect to the WireGuard VPN using a client (see the WireGuard web UI for configuration).
 2.  Your internet traffic will now be routed through the VPN, and DNS queries will be filtered by AdGuard Home.
+
+## Maintenance
+
+The automated maintenance system (if enabled) will:
+- Run weekly on Mondays at 2 AM
+- Update system packages using `dnf update -y`
+- Pull latest Docker images and restart containers
+- Reboot the server if system updates require it
+- Automatically restart containers after reboot
+
+Logs are stored in `~/update.log` for monitoring maintenance activities.
 
 ## Uninstall
 
@@ -65,6 +87,7 @@ To completely remove the `wg-lite-hop` stack and all its data from your server, 
 > *   All associated Docker volumes, which includes your **WireGuard client configurations** and **AdGuard Home settings**.
 > *   The firewall rules that were added during setup (`80/tcp`, `443/tcp`, `443/udp`, `51820/udp`).
 > *   The project directory itself (`wg-lite-hop-main`), including all configuration files.
+> *   Automated maintenance cron jobs and sudoers rules (if configured).
 > 
 > Before proceeding, the script will ask for confirmation. It also offers a convenient option to back up your `.env` and `traefik/acme.json` files to your user's home directory (`~/.env.bak` and `~/acme.json.bak`).
 > 
