@@ -17,15 +17,19 @@ log() {
 
 log "=== VPS MAINTENANCE SCRIPT STARTED ==="
 
-# Try to update system and capture output
-log "Running system update..."
-UPDATE_OUTPUT=$(sudo /usr/bin/dnf update -y 2>&1)
-log "DNF Update Output:"
-log "$UPDATE_OUTPUT"
+# Check for system updates without installing them
+log "Checking for system updates..."
+CHECK_UPDATE_OUTPUT=$(/usr/bin/dnf check-update 2>&1)
+CHECK_UPDATE_EXIT_CODE=$?
+log "DNF Check-Update Output:"
+log "$CHECK_UPDATE_OUTPUT"
 
-# Check if anything was actually installed/updated
-if echo "$UPDATE_OUTPUT" | grep -qE "(Installed:|Upgraded:)" && ! echo "$UPDATE_OUTPUT" | grep -q "Nothing to do"; then
-    log "System packages were updated. Stopping containers and rebooting..."
+# Decision logic:
+# If 'dnf check-update' found updates (exit code 100) AND
+# its output, after filtering out kernel packages, is not empty,
+# then proceed with a full system update and reboot.
+if [ "$CHECK_UPDATE_EXIT_CODE" -eq 100 ] && echo "$CHECK_UPDATE_OUTPUT" | grep -v '^kernel-' | grep -q '^'; then
+    log "Non-kernel system updates are available. Stopping containers, updating, and rebooting..."
     
     # Stop Docker containers
     cd "$COMPOSE_DIR" || {
@@ -33,6 +37,11 @@ if echo "$UPDATE_OUTPUT" | grep -qE "(Installed:|Upgraded:)" && ! echo "$UPDATE_
         exit 1
     }
     docker compose down
+
+    # Apply system updates
+    log "Applying system updates..."
+    SYSTEM_UPDATE_OUTPUT=$(sudo /usr/bin/dnf update -y 2>&1)
+    log "$SYSTEM_UPDATE_OUTPUT"
     
     # Create reboot flag for post-reboot script
     echo "$(date)" > "$REBOOT_FLAG"
@@ -40,7 +49,7 @@ if echo "$UPDATE_OUTPUT" | grep -qE "(Installed:|Upgraded:)" && ! echo "$UPDATE_
     log "Rebooting to apply updates..."
     sudo reboot
 else
-    log "No system updates installed. Proceeding with Docker maintenance..."
+    log "No non-kernel system updates available. Proceeding with Docker maintenance..."
     
     # Handle Docker updates
     cd "$COMPOSE_DIR" || {
