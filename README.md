@@ -63,7 +63,7 @@ A self-hosted WireGuard VPN with a web-based management UI, ad-blocking, and aut
 
 *   WireGuard Web UI (to set up clients): `https://your_domain`
 *   AdGuard Home UI (configure ad/trackers block lists): `https://adguard.your_domain`
-    > **⚠️ Important:** During the initial AdGuard Home setup, ensure you explicitly set the web interface port to `3000`. Do not use the default port `80` offered by the UI, as this will require manual intervention to adjust the `docker-compose.yml` configuration.
+    > **⚠️ Important:** During the initial AdGuard Home setup, ensure you explicitly set the web interface port to `3000`. After completing the setup process, if the AdGuard Home UI appears to be stuck or unresponsive, this is expected. Simply reload the page, and the panel will display correctly. Do not use the default port `80` offered by the UI, as this will require manual intervention to adjust the `docker-compose.yml` configuration.
 *   Traefik Dashboard UI (check server's metrics, *optional*): `https://traefik.your_domain`
 
 Use the credentials defined in your `.env` file to access the web UIs. 
