@@ -30,6 +30,12 @@ A self-hosted WireGuard VPN with a web-based management UI, ad-blocking, and aut
     ```bash
     curl -L https://github.com/ernvk23/wg-lite-hop/archive/refs/heads/main.tar.gz | tar xz && cd wg-lite-hop-main && chmod +x setup.sh && sudo ./setup.sh
     ```
+    This script will:
+    *   Verify your system is RHEL-based.
+    *   Install Docker and `firewalld` if they are not already present.
+    *   Configure necessary firewall rules (ports 80, 443, and 51820).
+    *   Create essential directories and configuration files, including Traefik's SSL certificates (`acme.json`) and AdGuard Home volumes.
+    *   Generate a `.env` file for your custom settings.
 
 2.  **Modify the `.env` file:**
 
@@ -57,6 +63,7 @@ A self-hosted WireGuard VPN with a web-based management UI, ad-blocking, and aut
 
 *   WireGuard Web UI (to set up clients): `https://your_domain`
 *   AdGuard Home UI (configure ad/trackers block lists): `https://adguard.your_domain`
+    > **⚠️ Important:** During the initial AdGuard Home setup, ensure you explicitly set the web interface port to `3000`. Do not use the default port `80` offered by the UI, as this will require manual intervention to adjust the `docker-compose.yml` configuration.
 *   Traefik Dashboard UI (check server's metrics, *optional*): `https://traefik.your_domain`
 
 Use the credentials defined in your `.env` file to access the web UIs. 
@@ -82,14 +89,13 @@ Logs are stored in `~/update.log` for monitoring maintenance activities.
 
 To completely remove the `wg-lite-hop` stack and all its data from your server, you can use the provided uninstall script.
 
-> **Warning: This is a destructive operation.** This script is designed to be thorough and will permanently remove:
-> *   All Docker containers, images, and networks associated with this project.
-> *   All associated Docker volumes, which includes your **WireGuard client configurations** and **AdGuard Home settings**.
-> *   The firewall rules that were added during setup (`80/tcp`, `443/tcp`, `443/udp`, `51820/udp`).
-> *   The project directory itself (`wg-lite-hop-main`), including all configuration files.
-> *   Automated maintenance cron jobs and sudoers rules (if configured).
-> 
-> Before proceeding, the script will ask for confirmation. It also offers a convenient option to back up your `.env` and `traefik/acme.json` files to your user's home directory (`~/.env.bak` and `~/acme.json.bak`).
+> **Warning: This is a destructive operation.** This script will permanently remove all components of the `wg-lite-hop` stack, including:
+> *   All Docker containers, images, and associated data (WireGuard client configurations, AdGuard Home settings).
+> *   Firewall rules opened during setup.
+> *   The project directory and all its configuration files.
+> *   Any automated maintenance setup (cron jobs and sudoers rules).
+>
+> The script will ask for confirmation before proceeding. It also offers to back up your `.env` and Traefik's SSL certificates (`acme.json`) files to your home directory.
 > 
 > To run the uninstaller, execute the following command from within the project directory. The script will ask for final confirmation before deleting anything.
 ```bash

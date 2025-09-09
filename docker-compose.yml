@@ -70,12 +70,20 @@ services:
       - "traefik.http.routers.adguard-ui.middlewares=secure-chain@docker"
       - "traefik.http.routers.adguard-ui.service=adguard"
       # Services
-      # IMPORTANT: On first run, AdGuard setup is on port 3000.
-      # After completing the setup at https://adguard.your_domain,
-      # stop the stack (docker compose down), uncomment the line below,
-      # comment out the port 3000 line, and restart (docker compose up -d).
+      # AdGuard Home UI Port Configuration:
+      # On initial setup via https://adguard.${DOMAIN}, the AdGuard UI is exposed on port 3000.
+      # During the setup process, you will be prompted to configure the web interface port.
+      # To maintain consistency with this docker-compose configuration, it is recommended
+      # to explicitly set the AdGuard Home UI port to '3000' within its web interface.
+      #
+      # If you choose to set the AdGuard Home UI port to '80' (the default option in the UI)
+      # you will need to perform the following steps after completing the setup:
+      # 1. Bring down the services: `docker compose down`
+      # 2. In this file, comment out the 'port=3000' line and uncomment the 'port=80' line below.
+      # 3. Bring up the services again: `docker compose up -d`
+      #
+      # For a simpler setup, always configure AdGuard Home UI to use port 3000.
       - "traefik.http.services.adguard.loadbalancer.server.port=3000"
-      # After succesfull creation on the web UI, the port should be changed to 80 (or the one set on the UI)
       # - "traefik.http.services.adguard.loadbalancer.server.port=80"
 
       # WireGuard VPN server with web UI
