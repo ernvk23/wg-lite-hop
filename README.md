@@ -34,6 +34,7 @@ A self-hosted WireGuard VPN with a web-based management UI, ad-blocking, and aut
     *   Verify your system is RHEL-based.
     *   Install Docker and `firewalld` if they are not already present.
     *   Configure necessary firewall rules (ports 80, 443, and 51820).
+    *   Configure system UDP buffer sizes for optimal performance.
     *   Create essential directories and configuration files, including Traefik's SSL certificates (`acme.json`) and AdGuard Home volumes.
     *   Generate a `.env` file for your custom settings.
 
@@ -92,6 +93,7 @@ To completely remove the `wg-lite-hop` stack and all its data from your server, 
 > **Warning: This is a destructive operation.** This script will permanently remove all components of the `wg-lite-hop` stack, including:
 > *   All Docker containers, images, and associated data (WireGuard client configurations, AdGuard Home settings).
 > *   Firewall rules opened during setup.
+> *   The system UDP buffer size configuration for optimal performance.
 > *   The project directory and all its configuration files.
 > *   Any automated maintenance setup (cron jobs and sudoers rules).
 >

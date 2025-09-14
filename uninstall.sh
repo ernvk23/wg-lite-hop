@@ -43,7 +43,7 @@ echo ""
 
 echo "--- Starting Uninstall ---"
 # --- Docker Cleanup ---
-echo "[1/4] Cleaning Docker resources..."
+echo "[1/5] Cleaning Docker resources..."
 if command -v docker &> /dev/null && [ -f "docker-compose.yml" ]; then
     docker compose down -v --rmi all --remove-orphans
     echo "Docker cleanup complete."
@@ -53,7 +53,7 @@ fi
 echo ""
 
 # --- Firewall Cleanup ---
-echo "[2/4] Removing firewall rules..."
+echo "[2/5] Removing firewall rules..."
 if command -v firewall-cmd &> /dev/null; then
     firewall-cmd --permanent --remove-port=80/tcp || true
     firewall-cmd --permanent --remove-port=443/tcp || true
@@ -66,8 +66,20 @@ else
 fi
 echo ""
 
+# --- Sysctl Cleanup ---
+echo "[3/5] Removing sysctl configuration..."
+SYSCTL_CONF_FILE="/etc/sysctl.d/99-system-udp-buffers.conf"
+if [ -f "$SYSCTL_CONF_FILE" ]; then
+    rm -f "$SYSCTL_CONF_FILE"
+    sudo sysctl --system > /dev/null
+    echo "Removed sysctl configuration for UDP buffers."
+else
+    echo "Sysctl configuration file not found, skipping cleanup."
+fi
+echo ""
+
 # --- Maintenance Cleanup ---
-echo "[3/4] Removing automated maintenance setup..."
+echo "[4/5] Removing automated maintenance setup..."
 # Remove cron jobs
 if crontab -l 2>/dev/null | grep -q 'wg-lite-hop-main/scripts/'; then
     crontab -l 2>/dev/null | grep -v 'wg-lite-hop-main/scripts/' | crontab -
@@ -86,7 +98,7 @@ fi
 echo ""
 
 # --- Local Configuration & Project Directory Cleanup ---
-echo "[4/4] Deleting project directory..."
+echo "[5/5] Deleting project directory..."
 PROJECT_DIR_NAME=$(basename "$PWD")
 cd ..
 rm -rf "./$PROJECT_DIR_NAME"

@@ -46,6 +46,14 @@ sudo firewall-cmd --permanent --add-port=51820/udp
 sudo firewall-cmd --reload
 echo "Firewall configured. Ports 80, 443, 443/udp, and 51820/udp are now open."
 
+# Configure UDP buffer sizes for AdGuard Home
+echo "Configuring system UDP buffer sizes for optimal performance..."
+SYSCTL_CONF_FILE="/etc/sysctl.d/99-system-udp-buffers.conf"
+echo "net.core.rmem_max = 7500000" | sudo tee "$SYSCTL_CONF_FILE" > /dev/null
+echo "net.core.wmem_max = 7500000" | sudo tee -a "$SYSCTL_CONF_FILE" > /dev/null
+sudo sysctl --system > /dev/null
+echo "System UDP buffer sizes configured."
+
 # Create .env file from template if it doesn't exist
 if [ ! -f .env ]; then
     echo "Creating .env file..."
