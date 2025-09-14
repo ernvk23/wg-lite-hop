@@ -49,9 +49,9 @@ services:
 
   # AdGuard Home DNS ad blocker
   adguard:
-    image: adguard/adguardhome:latest
+    # Stable fallback image, v0.107.65 known for breaking the login password.
+    image: adguard/adguardhome:v0.107.64
     # Fallback to older image if system breaks
-    # image: adguard/adguardhome@sha256:320ab49bd5f55091c7da7d1232ed3875f687769d6bb5e55eb891471528e2e18f
     container_name: adguard
     restart: unless-stopped
     volumes:
