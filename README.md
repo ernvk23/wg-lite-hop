@@ -104,6 +104,10 @@ To completely remove the `wg-lite-hop` stack and all its data from your server, 
 chmod +x uninstall.sh && sudo ./uninstall.sh
 ```
 
+## AdGuard Home Configuration Notes
+
+AdGuard Home is best configured via its web UI (`https://adguard.your_domain`). The `AdGuardHome.yaml` file contains reference DNS settings, upstreams, and other values. Advanced users might use this file to tailor their configuration to specific needs.
+
 ## Licensing
 
 This project is released under the [GNU Affero General Public License v3](LICENSE)

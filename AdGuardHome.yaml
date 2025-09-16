@@ -1,0 +1,46 @@
+http:
+  address: 0.0.0.0:3000
+dns:
+  anonymize_client_ip: true
+  ratelimit: 0
+  upstream_dns:
+    - quic://dns.nextdns.io
+    - tls://unfiltered.adguard-dns.com
+    - tls://dns.quad9.net:853
+  bootstrap_dns:
+    - 9.9.9.9
+    - 45.90.28.0
+    - 8.8.8.8
+    - 2620:fe::fe
+    - 2001:4860:4860::8888
+  upstream_mode: parallel
+  cache_size: 4194304
+  cache_ttl_min: 300
+  cache_ttl_max: 3600
+  cache_optimistic: true
+  enable_dnssec: true
+filters:
+  - enabled: true
+    url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/tif.mini.txt
+    name: HaGeZi's Threat Intelligence Feeds DNS Blocklist Mini
+    id: 1757849721
+  - enabled: true
+    url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/dyndns.txt
+    name: HaGeZi's DynDNS Blocklist
+    id: 1757849722
+  - enabled: true
+    url: https://raw.githubusercontent.com/DandelionSprout/adfilt/master/Alternate%20versions%20Anti-Malware%20List/AntiMalwareAdGuardHome.txt
+    name: Dandelion Sprout's Anti-Malware List
+    id: 1757849723
+  - enabled: true
+    url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/hoster.txt
+    name: HaGeZi's Badware Hoster DNS Blocklist
+    id: 1757849724
+  - enabled: true
+    url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/spam-tlds.txt
+    name: HaGeZi's The World's Most Abused TLDs
+    id: 1757849725
+  - enabled: true
+    url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/ultimate.mini.txt
+    name: HaGeZi's Ultimate mini DNS/Browser Blocklist
+    id: 1757849726
