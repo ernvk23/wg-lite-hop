@@ -12,8 +12,6 @@ services:
   # Traefik reverse proxy - handles SSL/TLS termination and routing
   traefik:
     image: traefik:3.5
-    # Fallback to older image if system breaks
-    # image: traefik@sha256:2cd5cc75530c8d07ae0587c743d23eb30cae2436d07017a5ff78498b1a43d09f
     container_name: traefik
     restart: unless-stopped
     ports:
@@ -51,7 +49,6 @@ services:
   adguard:
     # Stable fallback image, v0.107.65 known for breaking the login password.
     image: adguard/adguardhome:v0.107.64
-    # Fallback to older image if system breaks
     container_name: adguard
     restart: unless-stopped
     volumes:
@@ -60,7 +57,7 @@ services:
     networks:
       traefik-net:
         ipv4_address: 10.42.42.43
-        ipv6_address: fdcc:ad94:bacf:61a3::43
+        ipv6_address: fdcc:ad94:bacf:61a3::2b
     labels:
       - "org.label-schema.schema-version=1.0"
       - "traefik.enable=true"
@@ -69,13 +66,6 @@ services:
       - "traefik.http.routers.adguard-ui.entrypoints=websecure"
       - "traefik.http.routers.adguard-ui.middlewares=secure-chain@docker"
       - "traefik.http.routers.adguard-ui.service=adguard"
-      # Services
-      # AdGuard Home UI Port Configuration:
-      # On initial setup via https://adguard.${DOMAIN}, the AdGuard UI is exposed on port 3000.
-      # During the setup process, you will be prompted to configure the web interface port.
-      # To maintain consistency with this docker-compose configuration, it is recommended
-      # to explicitly set the AdGuard Home UI port to '3000' within its web interface.
-      #
       # If you choose to set the AdGuard Home UI port to '80' (the default option in the UI)
       # you will need to perform the following steps after completing the setup:
       # 1. Bring down the services: `docker compose down`
@@ -85,37 +75,29 @@ services:
       # For a simpler setup, always configure AdGuard Home UI to use port 3000.
       - "traefik.http.services.adguard.loadbalancer.server.port=3000"
       # - "traefik.http.services.adguard.loadbalancer.server.port=80"
+      # Network
+      - "traefik.docker.network=traefik-net"
 
       # WireGuard VPN server with web UI
   wg-easy:
     image: ghcr.io/wg-easy/wg-easy:15
-    # Fallaback to older image if system breaks
-    # image: ghcr.io/wg-easy/wg-easy@sha256:bb8152762c36f824eb42bb2f3c5ab8ad952818fbef677d584bc69ec513b251b0
     container_name: wg-easy
     restart: unless-stopped
     networks:
       traefik-net:
         ipv4_address: 10.42.42.42
-        ipv6_address: fdcc:ad94:bacf:61a3::42
+        ipv6_address: fdcc:ad94:bacf:61a3::2a
     environment:
       # Unattended setup (Group 1 + DNS)
       - INIT_ENABLED=true
-      - INIT_USERNAME=${WG_ADMIN_USER} # Set in .env
-      - INIT_PASSWORD=${WG_ADMIN_PASS} # Set in .env
+      - INIT_USERNAME=${WG_ADMIN_USER}
+      - INIT_PASSWORD=${WG_ADMIN_PASS}
       - INIT_HOST=${DOMAIN}
       - INIT_PORT=51820
-      - INIT_DNS=10.42.42.43,fdcc:ad94:bacf:61a3::43 # AdGuard IPs
-
+      - INIT_DNS=10.42.42.43,fdcc:ad94:bacf:61a3::2b
       # VPN network ranges (Group 3 - wg-easy defaults)
       - INIT_IPV4_CIDR=10.8.0.0/24
-      - INIT_IPV6_CIDR=fd42:42:42::/112
-
-      # Sets the DNS for the WireGuard CONTAINER ITSELF. Good for consistency.
-      - WG_DNS=10.42.42.43,fdcc:ad94:bacf:61a3::43
-      - WG_DEFAULT_DNS=10.42.42.43,fdcc:ad94:bacf:61a3::43
-
-      - WG_POST_UP=| iptables -t nat -A PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination 10.42.42.43; iptables -t nat -A PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination 10.42.42.43; ip6tables -t nat -A PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43; ip6tables -t nat -A PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43; iptables -N WG_RATELIMIT_V4 || true; iptables -F WG_RATELIMIT_V4; iptables -A WG_RATELIMIT_V4 -m hashlimit --hashlimit-name wg-ratelimit-v4 --hashlimit-mode srcip --hashlimit-upto ${WG_RATELIMIT_PACKETS} --hashlimit-burst ${WG_RATELIMIT_BURST} -j ACCEPT; iptables -A WG_RATELIMIT_V4 -j DROP; iptables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT_V4 2>/dev/null || true; iptables -A INPUT -p udp --dport 51820 -j WG_RATELIMIT_V4; ip6tables -N WG_RATELIMIT_V6 || true; ip6tables -F WG_RATELIMIT_V6; ip6tables -A WG_RATELIMIT_V6 -m hashlimit --hashlimit-name wg-ratelimit-v6 --hashlimit-mode srcip --hashlimit-upto ${WG_RATELIMIT_PACKETS} --hashlimit-burst ${WG_RATELIMIT_BURST} -j ACCEPT; ip6tables -A WG_RATELIMIT_V6 -j DROP; ip6tables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT_V6 2>/dev/null || true; ip6tables -A INPUT -p udp --dport 51820 -j WG_RATELIMIT_V6
-      - WG_POST_DOWN=| iptables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination 10.42.42.43 || true; iptables -t nat -D PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination 10.42.42.43 || true; ip6tables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43 || true; ip6tables -t nat -D PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::43 || true; iptables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT_V4 || true; iptables -F WG_RATELIMIT_V4 || true; iptables -X WG_RATELIMIT_V4 || true; ip6tables -D INPUT -p udp --dport 51820 -j WG_RATELIMIT_V6 || true; ip6tables -F WG_RATELIMIT_V6 || true; ip6tables -X WG_RATELIMIT_V6 || true
+      - INIT_IPV6_CIDR=fd42:42:42::/64
     ports:
       - "51820:51820/udp"
     volumes:
@@ -125,13 +107,11 @@ services:
       - NET_ADMIN
       - SYS_MODULE
     sysctls:
-      # MUST HAVE - enables local network routing
-      - net.ipv4.conf.all.route_localnet=1
-      # Necessary for VPN functionality
       - net.ipv4.ip_forward=1
       - net.ipv4.conf.all.src_valid_mark=1
-      # Recommended for IPv6 support
+      - net.ipv6.conf.all.disable_ipv6=0
       - net.ipv6.conf.all.forwarding=1
+      - net.ipv6.conf.default.forwarding=1
     labels:
       - "traefik.enable=true"
       # Routers
@@ -141,6 +121,8 @@ services:
       - "traefik.http.routers.wg-easy-ui.service=wg-easy"
       # Services
       - "traefik.http.services.wg-easy.loadbalancer.server.port=51821"
+      # Network
+      - "traefik.docker.network=traefik-net"
 
 # Network configuration
 networks:
