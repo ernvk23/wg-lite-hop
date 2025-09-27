@@ -1,6 +1,9 @@
+...
 http:
+  ...
   address: 0.0.0.0:3000
 dns:
+  ...
   anonymize_client_ip: true
   ratelimit: 0
   upstream_dns:
@@ -44,3 +47,4 @@ filters:
     url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/ultimate.mini.txt
     name: HaGeZi's Ultimate mini DNS/Browser Blocklist
     id: 1757849726
+...

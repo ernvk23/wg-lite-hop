@@ -1,140 +1,116 @@
-# Easy WireGuard VPN with Traefik and AdGuard Home
+# Self-Hosted WireGuard VPN with Traefik and AdGuard Home
 
-A self-hosted WireGuard VPN with a web-based management UI, ad-blocking, and automatic HTTPS via Traefik. This project is inspired by and adapted from [wg-easy](https://github.com/wg-easy/wg-easy).
+A self-hosted WireGuard VPN with a web UI, ad-blocking, and automatic HTTPS via Traefik. Adapted and inspired by [wg-easy](https://github.com/wg-easy/wg-easy).
 
 ## Overview
 
 ![Visual Diagram](./diagram.jpg)
-*A high-level overview of the project architecture. (Image Credit: Diagram by ernvk23)*
+_A high-level overview of the project architecture. (Image Credit: Diagram by ernvk23)_
 
 ## Features
 
-* **Easy WireGuard Management**: Simple web UI to add, remove, and manage VPN clients.
-* **Automatic HTTPS**: Traefik handles SSL/TLS certificates from Let's Encrypt automatically.
-* **Network-wide Ad Blocking**: Integrated AdGuard Home filters out ads and trackers for all VPN clients.
-* **Secure Access**: Web UIs are protected by Basic Authentication.
-* **Automated Maintenance**: Weekly system updates and Docker container management with automatic reboots when needed.
-* **Simple Setup**: Get up and running with a single setup script and `docker compose`.
+- **Simple Management**: Web UI for adding, removing, and managing VPN clients.
+- **Automatic HTTPS**: Traefik provides SSL certificates from Let's Encrypt.
+- **Ad Blocking**: AdGuard Home filters ads and trackers for all connected clients.
+- **Secure Access**: Web UIs are protected by Basic Authentication.
+- **Automated Maintenance**: Optional weekly system updates.
+- **Simple Setup**: Get running with a single setup script.
 
 ## Prerequisites
 
-* A Linux server with a public IP address and a RHEL-compatible distribution installed.
-  * **Tested on: AlmaLinux 9.6**
-* A domain name pointing to your server's IP address.
-* `curl` and `tar` installed.
+- A Linux server (**RHEL-based**, **_tested on AlmaLinux 9.6_**) with a public IP.
+- A domain name pointing to your server's IP.
+- `curl` and `tar` installed.
 
 ## Setup
 
 1. **Quick Install & Setup (AlmaLinux/RHEL):**
 
-    ```bash
-    curl -L https://github.com/ernvk23/wg-lite-hop/archive/refs/heads/main.tar.gz | tar xz && cd wg-lite-hop-main && chmod +x scripts/setup.sh && sudo ./scripts/setup.sh
+    ```shell
+    curl -L https://github.com/ernvk23/wg-lite-hop/archive/refs/heads/main.tar.gz | tar xz && cd wg-lite-hop-main && chmod +x ./scripts/setup.sh && sudo ./scripts/setup.sh
     ```
 
-    This script will:
-    * Verify your system is RHEL-based.
-    * Install Docker and `firewalld` if they are not already present.
-    * Configure necessary firewall rules (ports 80, 443, and 51820).
-    * Configure system UDP buffer sizes for optimal performance.
-    * Create essential directories and configuration files, including Traefik's SSL certificates (`acme.json`) and AdGuard Home volumes.
-    * Generate a `.env` file for your custom settings.
+> [!NOTE]
+> This script installs Docker and `firewalld`, configures firewall rules, optimizes system settings, and prepares necessary configuration files.
 
 2. **Modify the `.env` file:**
 
-    Edit the `.env` file to set your actual domain, email, and a strong password hash (as instructed by the setup script).
+    Edit the `.env` file to set your actual domain, email, and a strong password hash.
 
 3. **Start the services:**
 
-    ```bash
+    ```shell
     sudo docker compose up -d
     ```
 
 4. **Set up automated maintenance (optional but recommended):**
 
-    ```bash
+    ```shell
     chmod +x scripts/add_update_cron.sh && ./scripts/add_update_cron.sh
     ```
 
-    This sets up:
-    * Weekly system updates every Monday at 2 AM
-    * Automatic Docker image updates
-    * Automatic reboots when system updates require them
-    * Post-reboot container restart
+> [!NOTE]
+> This sets up weekly system updates and automatic reboots when required.
 
 ## Access
 
-* WireGuard Web UI (to set up clients): `https://your_domain`
-* AdGuard Home UI (configure ad/trackers block lists): `https://adguard.your_domain`
-    > **⚠️ Important:** During the initial AdGuard Home setup, ensure you explicitly set the web interface port to `3000`. After completing the setup process, if the AdGuard Home UI appears to be stuck or unresponsive, this is expected. Simply reload the page, and the panel will display correctly. Do not use the default port `80` offered by the UI, as this will require manual intervention to adjust the `docker-compose.yml` configuration.
-* Traefik Dashboard UI (check server's metrics, *optional*): `https://traefik.your_domain`
+**Access to the web UIs is protected by a two-step process:**
 
-Use the credentials defined in your `.env` file to access the web UIs.
-*Note:* When accessing the web UIs, your browser will first show a pop-up asking for a username and password. This is the basic authentication layer provided by Traefik. Use the `AUTH_USER` from your `.env` file and the password you used to generate the `AUTH_PASS_HASH` value.
+- **Traefik Basic Auth**: For `https://traefik.your_domain` (Traefik Dashboard) and the initial popup for all UIs, use the `AUTH_USER` and `AUTH_PASS_HASH` variables from your `.env` file.
+- **WireGuard UI**: For `https://your_domain` (Manage VPN clients), use the `WG_ADMIN_USER` and `WG_ADMIN_PASSWORD` variables from your `.env` file.
+- **AdGuard Home UI**: For `https://adguard.your_domain` (Configure ad-blocking), access is configured via the AdGuard Home setup wizard.
+
+> [!WARNING]
+> During AdGuard Home setup, set the **Admin Web Interface Port** to **3000**. Reload the page if the UI appears unresponsive.
+
+> If you accidentally use port 80, manually edit `docker-compose.yml` (change `server.port=3000` to `server.port=80` for `adguard` service) and restart with `sudo docker compose up -d`.
 
 ## Usage
 
-1. Connect to the WireGuard VPN using a client (see the WireGuard web UI for configuration).
-2. Your internet traffic will now be routed through the VPN, and DNS queries will be filtered by AdGuard Home.
+Connect to the WireGuard VPN using a client (refer to the WireGuard web UI for configuration). Once connected, your internet traffic will be routed through the VPN, and DNS queries will be filtered by AdGuard Home.
 
 ## Maintenance
 
-The automated maintenance system (if enabled) will:
-
-* Run weekly on Mondays at 2 AM
-* Update system packages using `dnf update -y`
-* Pull latest Docker images and restart containers
-* Reboot the server if system updates require it
-* Automatically restart containers after reboot
-
-Logs are stored in `~/update.log` for monitoring maintenance activities.
+The automated maintenance system (if enabled) runs weekly, updates system packages, and reboots if necessary. Logs are in `~/update.log`.
 
 ## Uninstall
 
-To completely remove the `wg-lite-hop` stack and all its data from your server, you can use the provided uninstall script.
+The uninstall script removes the entire stack and its data from your server.
 
-> **Warning: This is a destructive operation.** This script will permanently remove all components of the `wg-lite-hop` stack, including:
->
-> * All Docker containers, images, and associated data (WireGuard client configurations, AdGuard Home settings).
-> * Firewall rules opened during setup.
-> * The system UDP buffer size configuration for optimal performance.
-> * The project directory and all its configuration files.
-> * Any automated maintenance setup (cron jobs and sudoers rules).
->
-> The script will ask for confirmation before proceeding. It also offers to back up your `.env` and Traefik's SSL certificates (`acme.json`) files to your home directory.
->
-> To run the uninstaller, execute the following command from within the project directory. The script will ask for final confirmation before deleting anything.
+> [!CAUTION]
+> This script permanently removes all components, data, firewall rules, and maintenance setups. It will ask for confirmation and offers to back up `.env` and `acme.json`.
 
-```bash
+To run the uninstaller, execute the following command from the project directory:
+
+```shell
 chmod +x scripts/uninstall.sh && sudo ./scripts/uninstall.sh
 ```
 
-### Optional: Force DNS Resolution to Prevent Leaks
+## Optional
+
+### Force DNS Resolution to Prevent Leaks
 
 To prevent DNS leaks from devices with fixed IPs (which can bypass the VPN's DNS and ad-blocking), force all DNS queries through AdGuard.
 
 1. In the WireGuard Web UI, go to the **Hooks** tab and replace the content with:
 
-    ***PostUp***
+    **_PostUp_**
 
     ```shell
     iptables -A INPUT -p udp -m udp --dport {{port}} -j ACCEPT; ip6tables -A INPUT -p udp -m udp --dport {{port}} -j ACCEPT; iptables -t nat -A PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination 10.42.42.43; iptables -t nat -A PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination 10.42.42.43; ip6tables -t nat -A PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::2b; ip6tables -t nat -A PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::2b; iptables -A FORWARD -i wg0 -j ACCEPT; iptables -A FORWARD -o wg0 -j ACCEPT; ip6tables -A FORWARD -i wg0 -j ACCEPT; ip6tables -A FORWARD -o wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -s {{ipv4Cidr}} -o {{device}} -j MASQUERADE; ip6tables -t nat -A POSTROUTING -s {{ipv6Cidr}} -o {{device}} -j MASQUERADE;
     ```
 
-    ***PostDown***
+    **_PostDown_**
 
     ```shell
     iptables -D INPUT -p udp -m udp --dport {{port}} -j ACCEPT || true; ip6tables -D INPUT -p udp -m udp --dport {{port}} -j ACCEPT || true; iptables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination 10.42.42.43 || true; iptables -t nat -D PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination 10.42.42.43 || true; ip6tables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::2b || true; ip6tables -t nat -D PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::2b || true; iptables -D FORWARD -i wg0 -j ACCEPT || true; iptables -D FORWARD -o wg0 -j ACCEPT || true; ip6tables -D FORWARD -i wg0 -j ACCEPT || true; ip6tables -D FORWARD -o wg0 -j ACCEPT || true; iptables -t nat -D POSTROUTING -s {{ipv4Cidr}} -o {{device}} -j MASQUERADE || true; ip6tables -t nat -D POSTROUTING -s {{ipv6Cidr}} -o {{device}} -j MASQUERADE || true;
     ```
 
-2. **Save** and then restart the container:
+2. **Save** and then restart the container with `sudo docker restart wg-easy`:
 
-    ```shell
-    sudo docker restart wg-easy
-    ```
+### AdGuard Home Configuration Notes
 
-## AdGuard Home Configuration Notes
-
-AdGuard Home is best configured via its web UI (`https://adguard.your_domain`). The `AdGuardHome.yaml` file contains reference DNS settings, upstreams, and other values. Advanced users might use this file to tailor their configuration to specific needs.
+AdGuard Home is managed via its web UI. While it has basic filters, these are customizable. The provided [`AdGuardHome.yaml`](AdGuardHome.yaml) offers advanced DNS settings and filters for reference, but cannot replace the active configuration.
 
 ## Licensing
 
