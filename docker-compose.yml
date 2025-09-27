@@ -26,7 +26,7 @@ services:
     command:
       - --certificatesresolvers.letsencrypt.acme.email=${TRAEFIK_ACME_EMAIL}
     networks:
-      - traefik-net
+      - traefik_net
     labels:
       - "traefik.enable=true"
       # --- MIDDLEWARES (Defined once on the Traefik service) ---
@@ -55,7 +55,7 @@ services:
       - ./adguard/adguard_work:/opt/adguardhome/work
       - ./adguard/adguard_conf:/opt/adguardhome/conf
     networks:
-      traefik-net:
+      traefik_net:
         ipv4_address: 10.42.42.43
         ipv6_address: fdcc:ad94:bacf:61a3::2b
     labels:
@@ -76,7 +76,7 @@ services:
       - "traefik.http.services.adguard.loadbalancer.server.port=3000"
       # - "traefik.http.services.adguard.loadbalancer.server.port=80"
       # Network
-      - "traefik.docker.network=traefik-net"
+      - "traefik.docker.network=traefik_net"
 
       # WireGuard VPN server with web UI
   wg-easy:
@@ -84,7 +84,7 @@ services:
     container_name: wg-easy
     restart: unless-stopped
     networks:
-      traefik-net:
+      traefik_net:
         ipv4_address: 10.42.42.42
         ipv6_address: fdcc:ad94:bacf:61a3::2a
     environment:
@@ -122,12 +122,12 @@ services:
       # Services
       - "traefik.http.services.wg-easy.loadbalancer.server.port=51821"
       # Network
-      - "traefik.docker.network=traefik-net"
+      - "traefik.docker.network=traefik_net"
 
 # Network configuration
 networks:
-  traefik-net:
-    name: traefik-net
+  traefik_net:
+    name: traefik_net
     driver: bridge
     enable_ipv6: true
     ipam:
@@ -135,7 +135,6 @@ networks:
       config:
         - subnet: 10.42.42.0/24
         - subnet: fdcc:ad94:bacf:61a3::/64
-
 # Routes:
 # - https://your_domain           -> WireGuard web UI
 # - https://traefik.your_domain   -> Traefik dashboard
