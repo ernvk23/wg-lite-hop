@@ -79,6 +79,7 @@ Use the credentials defined in your `.env` file to access the web UIs.
 ## Maintenance
 
 The automated maintenance system (if enabled) will:
+
 * Run weekly on Mondays at 2 AM
 * Update system packages using `dnf update -y`
 * Pull latest Docker images and restart containers
@@ -106,6 +107,30 @@ To completely remove the `wg-lite-hop` stack and all its data from your server, 
 ```bash
 chmod +x scripts/uninstall.sh && sudo ./scripts/uninstall.sh
 ```
+
+### Optional: Force DNS Resolution to Prevent Leaks
+
+To prevent DNS leaks from devices with fixed IPs (which can bypass the VPN's DNS and ad-blocking), force all DNS queries through AdGuard.
+
+1. In the WireGuard Web UI, go to the **Hooks** tab and replace the content with:
+
+    ***PostUp***
+
+    ```shell
+    iptables -A INPUT -p udp -m udp --dport {{port}} -j ACCEPT; ip6tables -A INPUT -p udp -m udp --dport {{port}} -j ACCEPT; iptables -t nat -A PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination 10.42.42.43; iptables -t nat -A PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination 10.42.42.43; ip6tables -t nat -A PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::2b; ip6tables -t nat -A PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::2b; iptables -A FORWARD -i wg0 -j ACCEPT; iptables -A FORWARD -o wg0 -j ACCEPT; ip6tables -A FORWARD -i wg0 -j ACCEPT; ip6tables -A FORWARD -o wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -s {{ipv4Cidr}} -o {{device}} -j MASQUERADE; ip6tables -t nat -A POSTROUTING -s {{ipv6Cidr}} -o {{device}} -j MASQUERADE;
+    ```
+
+    ***PostDown***
+
+    ```shell
+    iptables -D INPUT -p udp -m udp --dport {{port}} -j ACCEPT || true; ip6tables -D INPUT -p udp -m udp --dport {{port}} -j ACCEPT || true; iptables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination 10.42.42.43 || true; iptables -t nat -D PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination 10.42.42.43 || true; ip6tables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::2b || true; ip6tables -t nat -D PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::2b || true; iptables -D FORWARD -i wg0 -j ACCEPT || true; iptables -D FORWARD -o wg0 -j ACCEPT || true; ip6tables -D FORWARD -i wg0 -j ACCEPT || true; ip6tables -D FORWARD -o wg0 -j ACCEPT || true; iptables -t nat -D POSTROUTING -s {{ipv4Cidr}} -o {{device}} -j MASQUERADE || true; ip6tables -t nat -D POSTROUTING -s {{ipv6Cidr}} -o {{device}} -j MASQUERADE || true;
+    ```
+
+2. **Save** and then restart the container:
+
+    ```shell
+    sudo docker restart wg-easy
+    ```
 
 ## AdGuard Home Configuration Notes
 
