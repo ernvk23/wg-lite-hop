@@ -11,8 +11,11 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
+USER_HOME=$(eval echo "~$SUDO_USER")
+PROJECT_DIR_NAME=$(basename "$PWD")
+
 # --- Confirmation ---
-echo "This will permanently remove the wg-lite-hop stack, including all Docker containers, networks, volumes (WireGuard client data, AdGuard settings), firewall rules, automated maintenance setup, and the project directory itself."
+echo "This will permanently remove the wg-lite-hop stack, including all its Docker containers, networks, images, volumes (WireGuard client data, AdGuard settings), firewall rules, automated maintenance setup, and the project directory itself."
 read -p "Are you sure you want to uninstall? (y/N) " -n 1 -r && echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     echo "Uninstall cancelled."
@@ -24,7 +27,7 @@ if [ -f "./traefik/acme.json" ]; then
     read -p "Backup acme.json to your home directory? (Y/n) " -n 1 -r && echo
     if [[ "$REPLY" =~ ^[Yy]$ ]]; then
         TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-        BACKUP_FILE=~/acme.json.bak."$TIMESTAMP"
+        BACKUP_FILE=$USER_HOME/acme.json.bak."$TIMESTAMP"
         cp ./traefik/acme.json "$BACKUP_FILE"
         echo "Saved acme.json to $BACKUP_FILE"
     fi
@@ -34,7 +37,7 @@ if [ -f "./.env" ]; then
     read -p "Backup .env file to your home directory? (Y/n) " -n 1 -r && echo
     if [[ "$REPLY" =~ ^[Yy]$ ]]; then
         TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-        BACKUP_FILE=~/.env.bak."$TIMESTAMP"
+        BACKUP_FILE=$USER_HOME/env.bak."$TIMESTAMP"
         cp ./.env "$BACKUP_FILE"
         echo "Saved .env to $BACKUP_FILE"
     fi
@@ -45,7 +48,7 @@ echo "--- Starting Uninstall ---"
 # --- Docker Cleanup ---
 echo "[1/5] Cleaning Docker resources..."
 if command -v docker &> /dev/null && [ -f "docker-compose.yml" ]; then
-    docker compose down -v --rmi all --remove-orphans
+    docker compose down -v --rmi local --remove-orphans
     echo "Docker cleanup complete."
 else
     echo "Docker or docker-compose.yml not found, skipping Docker cleanup."
@@ -80,13 +83,15 @@ echo ""
 
 # --- Maintenance Cleanup ---
 echo "[4/5] Removing automated maintenance setup..."
-# Remove cron jobs
-if crontab -l 2>/dev/null | grep -q 'wg-lite-hop/scripts/'; then
-    crontab -l 2>/dev/null | grep -v 'wg-lite-hop/scripts/' | crontab -
-    echo "Removed cron jobs."
+CALLER=${SUDO_USER:-$(whoami)}
+# Remove cron jobs from the original user's crontab
+if sudo crontab -u "$CALLER" -l 2>/dev/null | grep -q "$PROJECT_DIR_NAME/scripts/"; then
+    sudo crontab -u "$CALLER" -l 2>/dev/null | grep -v "$PROJECT_DIR_NAME/scripts/" | sudo crontab -u "$CALLER" -
+    echo "Removed cron jobs for user $CALLER."
 else
-    echo "No cron jobs found."
+    echo "No cron jobs found for user $CALLER."
 fi
+
 
 # Remove sudoers rule
 if grep -q "# Maintenance script permissions" /etc/sudoers 2>/dev/null; then
@@ -99,9 +104,8 @@ echo ""
 
 # --- Local Configuration & Project Directory Cleanup ---
 echo "[5/5] Deleting project directory..."
-PROJECT_DIR_NAME=$(basename "$PWD")
-cd ..
-rm -rf "./$PROJECT_DIR_NAME"
+cd $USER_HOME
+rm -rf "$USER_HOME/$PROJECT_DIR_NAME"
 echo "Project directory '$PROJECT_DIR_NAME' removed."
 echo ""
 

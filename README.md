@@ -27,7 +27,8 @@ _A high-level overview of the project architecture. (Image Credit: Diagram by er
 1. **Quick Install & Setup (AlmaLinux/RHEL):**
 
     ```shell
-    mkdir -p ~/wg-lite-hop && cd ~/wg-lite-hop && curl -L https://github.com/ernvk23/wg-lite-hop/archive/refs/heads/main.tar.gz | tar --strip-components=1 -xz && chmod +x ./scripts/setup.sh && sudo ./scripts/setup.sh
+    mkdir -p ~/wg-lite-hop && cd ~/wg-lite-hop && curl -L https://github.com/ernvk23/wg-lite-hop/archive/refs/heads/main.tar.gz | tar --strip-components=1 -xz --warning=none && chmod +x ./scripts/setup.sh && sudo ./scripts/setup.sh
+
     ```
 
 > [!NOTE]
