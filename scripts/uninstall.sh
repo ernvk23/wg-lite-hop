@@ -87,6 +87,7 @@ CALLER=${SUDO_USER:-$(whoami)}
 # Remove cron jobs from the original user's crontab
 if sudo crontab -u "$CALLER" -l 2>/dev/null | grep -q "$PROJECT_DIR_NAME/scripts/"; then
     sudo crontab -u "$CALLER" -l 2>/dev/null | grep -v "$PROJECT_DIR_NAME/scripts/" | sudo crontab -u "$CALLER" -
+    sudo sed -i -e :a -e '/^\n*$/{$d;N;ba' -e '}' /etc/sudoers
     echo "Removed cron jobs for user $CALLER."
 else
     echo "No cron jobs found for user $CALLER."
