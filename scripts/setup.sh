@@ -25,6 +25,8 @@ if ! command -v docker &> /dev/null; then
     sudo dnf -y config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
     sudo dnf -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
     sudo systemctl enable --now docker
+    sudo groupadd docker
+    sudo usermod -aG docker $USER
     echo "Docker installed and started."
 fi
 
