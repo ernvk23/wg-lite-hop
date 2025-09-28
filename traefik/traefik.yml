@@ -37,7 +37,7 @@ providers:
   # Docker provider to auto-discover services from container labels
   docker:
     watch: true
-    network: traefik-net
+    network: traefik_net
     exposedByDefault: false
 
   file:
