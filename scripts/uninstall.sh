@@ -25,7 +25,7 @@ fi
 # --- Optional Backups ---
 if [ -f "./traefik/acme.json" ]; then
     read -p "Backup acme.json to your home directory? (Y/n) " -n 1 -r && echo
-    if [[ "$REPLY" =~ ^[Yy]$ ]]; then
+    if [[ -z "$REPLY" || "$REPLY" =~ ^[Yy]$ ]]; then
         TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
         BACKUP_FILE=$USER_HOME/acme.json.bak."$TIMESTAMP"
         cp ./traefik/acme.json "$BACKUP_FILE"
@@ -35,7 +35,7 @@ fi
 # --- Optional .env Backup ---
 if [ -f "./.env" ]; then
     read -p "Backup .env file to your home directory? (Y/n) " -n 1 -r && echo
-    if [[ "$REPLY" =~ ^[Yy]$ ]]; then
+    if [[ -z "$REPLY" || "$REPLY" =~ ^[Yy]$ ]]; then
         TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
         BACKUP_FILE=$USER_HOME/env.bak."$TIMESTAMP"
         cp ./.env "$BACKUP_FILE"
