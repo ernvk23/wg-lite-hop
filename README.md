@@ -4,7 +4,7 @@ A self-hosted WireGuard VPN with a web UI, ad-blocking, and automatic HTTPS via 
 
 ## Overview
 
-![Visual Diagram](./diagram.jpg)
+![Visual Diagram](./assets/diagram.jpg)
 _A high-level overview of the project architecture. (Image Credit: Diagram by ernvk23)_
 
 ## Features
@@ -110,7 +110,7 @@ To prevent DNS leaks from devices with fixed IPs (which can bypass the VPN's DNS
 
 ### AdGuard Home Configuration Notes
 
-AdGuard Home is managed via its web UI. While it has basic filters, these are customizable. The provided [`AdGuardHome.yaml`](AdGuardHome.yaml) offers advanced DNS settings and filters for reference, but cannot replace the active configuration.
+AdGuard Home is managed via its web UI. While it has basic filters, these are customizable. The provided [`AdGuardHome.yaml`](./assets/AdGuardHome.yaml) offers advanced DNS settings and filters for reference, but cannot replace the active configuration.
 
 ## Licensing
 
