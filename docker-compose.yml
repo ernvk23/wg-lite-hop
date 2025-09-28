@@ -1,15 +1,12 @@
-# Docker Compose configuration for WireGuard VPN setup with Traefik reverse proxy
+# Docker Compose for WireGuard VPN with Traefik
 
-# Persistent storage volumes
-# 'etc_wireguard' is a Docker-managed named volume.
-# AdGuard volumes are also Docker-managed.
-# Traefik config files are mounted from the host (bind mounts) and don't need to be declared here.
+# Named volumes for persistent storage
 volumes:
   etc_wireguard:
     name: etc_wireguard
 
 services:
-  # Traefik reverse proxy - handles SSL/TLS termination and routing
+  # Traefik reverse proxy
   traefik:
     image: traefik:3.5
     container_name: traefik
@@ -29,14 +26,13 @@ services:
       - traefik_net
     labels:
       - "traefik.enable=true"
-      # --- MIDDLEWARES (Defined once on the Traefik service) ---
-      # Basic Authentication for all UIs
+      # Middlewares
+      # Basic Authentication for UIs
       - "traefik.http.middlewares.auth.basicauth.users=${AUTH_USER}:${AUTH_PASS_HASH}"
-      # Rate limiting for all UIs to prevent brute-force/DDoS
+      # Rate limiting for UIs
       - "traefik.http.middlewares.rate-limit.ratelimit.average=5" # requests per second
       - "traefik.http.middlewares.rate-limit.ratelimit.burst=10"
-      # Chain the middlewares together for easy application to all UIs.
-      # We rate-limit first, then authenticate.
+      # Chain: rate-limit, then authenticate
       - "traefik.http.middlewares.secure-chain.chain.middlewares=rate-limit,auth"
 
       # Dashboard routers
@@ -45,7 +41,7 @@ services:
       - "traefik.http.routers.traefik-ui.middlewares=secure-chain@docker"
       - "traefik.http.routers.traefik-ui.service=api@internal"
 
-  # AdGuard Home DNS ad blocker
+  # AdGuard Home DNS blocker
   adguard:
     # Stable fallback image, v0.107.65 known for breaking the login password.
     image: adguard/adguardhome:v0.107.64
@@ -66,19 +62,14 @@ services:
       - "traefik.http.routers.adguard-ui.entrypoints=websecure"
       - "traefik.http.routers.adguard-ui.middlewares=secure-chain@docker"
       - "traefik.http.routers.adguard-ui.service=adguard"
-      # If you choose to set the AdGuard Home UI port to '80' (the default option in the UI)
-      # you will need to perform the following steps after completing the setup:
-      # 1. Bring down the services: `docker compose down`
-      # 2. In this file, comment out the 'port=3000' line and uncomment the 'port=80' line below.
-      # 3. Bring up the services again: `docker compose up -d`
-      #
-      # For a simpler setup, always configure AdGuard Home UI to use port 3000.
+      # If you change the AdGuard Home UI port to '80' (the default in the UI),
+      # manually edit this file (change 'port=3000' to 'port=80' below)
+      # and then run `docker compose up -d adguard` to apply changes.
       - "traefik.http.services.adguard.loadbalancer.server.port=3000"
-      # - "traefik.http.services.adguard.loadbalancer.server.port=80"
       # Network
       - "traefik.docker.network=traefik_net"
 
-      # WireGuard VPN server with web UI
+  # WireGuard VPN server
   wg-easy:
     image: ghcr.io/wg-easy/wg-easy:15
     container_name: wg-easy
@@ -88,14 +79,14 @@ services:
         ipv4_address: 10.42.42.42
         ipv6_address: fdcc:ad94:bacf:61a3::2a
     environment:
-      # Unattended setup (Group 1 + DNS)
+      # Unattended setup
       - INIT_ENABLED=true
       - INIT_USERNAME=${WG_ADMIN_USER}
       - INIT_PASSWORD=${WG_ADMIN_PASS}
       - INIT_HOST=${DOMAIN}
       - INIT_PORT=51820
       - INIT_DNS=10.42.42.43,fdcc:ad94:bacf:61a3::2b
-      # VPN network ranges (Group 3 - wg-easy defaults)
+      # VPN network ranges
       - INIT_IPV4_CIDR=10.8.0.0/24
       - INIT_IPV6_CIDR=fd42:42:42::/64
     ports:
@@ -124,7 +115,7 @@ services:
       # Network
       - "traefik.docker.network=traefik_net"
 
-# Network configuration
+# Networks
 networks:
   traefik_net:
     name: traefik_net
@@ -135,7 +126,7 @@ networks:
       config:
         - subnet: 10.42.42.0/24
         - subnet: fdcc:ad94:bacf:61a3::/64
-# Routes:
+# Routes
 # - https://your_domain           -> WireGuard web UI
 # - https://traefik.your_domain   -> Traefik dashboard
 # - https://adguard.your_domain   -> AdGuard Home web UI
