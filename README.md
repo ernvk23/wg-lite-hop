@@ -14,6 +14,7 @@ _A high-level overview of the project architecture. (Image Credit: Diagram by er
 - **Ad Blocking**: AdGuard Home filters ads and trackers for all connected clients.
 - **Secure Access**: Web UIs are protected by Basic Authentication.
 - **Automated Maintenance**: Optional weekly system updates.
+- **Rate Limiting**: Optional UDP port rate-limiting for enhanced security.
 - **Simple Setup**: Get running with a single setup script.
 
 ## Prerequisites
@@ -107,7 +108,29 @@ To prevent DNS leaks from devices with fixed IPs (which can bypass the VPN's DNS
     iptables -D INPUT -p udp -m udp --dport {{port}} -j ACCEPT || true; ip6tables -D INPUT -p udp -m udp --dport {{port}} -j ACCEPT || true; iptables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination 10.42.42.43 || true; iptables -t nat -D PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination 10.42.42.43 || true; ip6tables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::2b || true; ip6tables -t nat -D PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::2b || true; iptables -D FORWARD -i wg0 -j ACCEPT || true; iptables -D FORWARD -o wg0 -j ACCEPT || true; ip6tables -D FORWARD -i wg0 -j ACCEPT || true; ip6tables -D FORWARD -o wg0 -j ACCEPT || true; iptables -t nat -D POSTROUTING -s {{ipv4Cidr}} -o {{device}} -j MASQUERADE || true; ip6tables -t nat -D POSTROUTING -s {{ipv6Cidr}} -o {{device}} -j MASQUERADE || true;
     ```
 
-2. **Save** and then restart the container with `sudo docker restart wg-easy`:
+2. **Save** and then restart the container with `sudo docker restart wg-easy`
+
+### Rate-Limiting UDP Port (+ Force DNS Resolution)
+
+To enhance security and prevent abuse, you can rate-limit UDP traffic on the WireGuard port. This is an extension of the "Force DNS Resolution" setup, applying rate limits to the UDP port used by WireGuard.
+
+1. In the WireGuard Web UI, go to the **Hooks** tab and replace the content with:
+
+    > The default rate limit is `200req/sec` with a burst of `400` (Modify if needed)
+
+    **_PostUp_**
+
+    ```shell
+    iptables -N WG_RATELIMIT_V4; iptables -F WG_RATELIMIT_V4; iptables -A WG_RATELIMIT_V4 -m hashlimit --hashlimit-name wg-ratelimit-v4 --hashlimit-mode srcip --hashlimit-upto 200/second --hashlimit-burst 400 -j ACCEPT; iptables -A WG_RATELIMIT_V4 -j DROP; ip6tables -N WG_RATELIMIT_V6; ip6tables -F WG_RATELIMIT_V6; ip6tables -A WG_RATELIMIT_V6 -m hashlimit --hashlimit-name wg-ratelimit-v6 --hashlimit-mode srcip --hashlimit-upto 200/second --hashlimit-burst 400 -j ACCEPT; ip6tables -A WG_RATELIMIT_V6 -j DROP; iptables -A INPUT -p udp -m udp --dport {{port}} -j WG_RATELIMIT_V4; ip6tables -A INPUT -p udp -m udp --dport {{port}} -j WG_RATELIMIT_V6; iptables -t nat -A PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination 10.42.42.43; iptables -t nat -A PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination 10.42.42.43; ip6tables -t nat -A PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::2b; ip6tables -t nat -A PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::2b; iptables -A FORWARD -i wg0 -j ACCEPT; iptables -A FORWARD -o wg0 -j ACCEPT; ip6tables -A FORWARD -i wg0 -j ACCEPT; ip6tables -A FORWARD -o wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -s {{ipv4Cidr}} -o {{device}} -j MASQUERADE; ip6tables -t nat -A POSTROUTING -s {{ipv6Cidr}} -o {{device}} -j MASQUERADE;
+    ```
+
+    **_PostDown_**
+
+    ```shell
+    iptables -D INPUT -p udp -m udp --dport {{port}} -j WG_RATELIMIT_V4 || true; iptables -F WG_RATELIMIT_V4 || true; iptables -X WG_RATELIMIT_V4 || true; ip6tables -D INPUT -p udp -m udp --dport {{port}} -j WG_RATELIMIT_V6 || true; ip6tables -F WG_RATELIMIT_V6 || true; ip6tables -X WG_RATELIMIT_V6 || true; iptables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination 10.42.42.43 || true; iptables -t nat -D PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination 10.42.42.43 || true; ip6tables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::2b || true; ip6tables -t nat -D PREROUTING -i wg0 -p tcp --dport 53 -j DNAT --to-destination fdcc:ad94:bacf:61a3::2b || true; iptables -D FORWARD -i wg0 -j ACCEPT || true; iptables -D FORWARD -o wg0 -j ACCEPT || true; ip6tables -D FORWARD -i wg0 -j ACCEPT || true; ip6tables -D FORWARD -o wg0 -j ACCEPT || true; iptables -t nat -D POSTROUTING -s {{ipv4Cidr}} -o {{device}} -j MASQUERADE || true; ip6tables -t nat -D POSTROUTING -s {{ipv6Cidr}} -o {{device}} -j MASQUERADE || true;
+    ```
+
+2. **Save** and then restart the container with `sudo docker restart wg-easy`
 
 ### AdGuard Home Configuration Notes
 
