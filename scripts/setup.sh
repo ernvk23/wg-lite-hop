@@ -25,10 +25,12 @@ if ! command -v docker &> /dev/null; then
     sudo dnf -y config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
     sudo dnf -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
     sudo systemctl enable --now docker
-    sudo groupadd docker
-    sudo usermod -aG docker $USER
     echo "Docker installed and started."
 fi
+
+# Docker group management (always run)
+sudo groupadd docker || true
+sudo usermod -aG docker $USER || true
 
 # Check if firewalld is present, install and enable if not
 if ! command -v firewall-cmd &> /dev/null; then
@@ -93,12 +95,10 @@ touch ./traefik/acme.json
 chmod 600 ./traefik/acme.json
 echo "acme.json created with secure permissions."
 
-
 echo "Creating Adguard volume dirs..."
 mkdir -p ./adguard/adguard_work ./adguard/adguard_conf
 chmod -R 700 ./adguard/adguard_work ./adguard/adguard_conf
 echo "Adguard volume dirs created with secure permissions."
-
 
 # Create instructions file
 cat << EOF > instructions.txt
