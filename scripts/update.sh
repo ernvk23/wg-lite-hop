@@ -4,7 +4,7 @@
 # Handles system updates and Docker maintenance
 
 # Configuration
-COMPOSE_DIR="$HOME/wg-lite-hop-main"
+COMPOSE_DIR="$HOME/wg-lite-hop"
 LOGFILE="$HOME/update.log"
 REBOOT_FLAG="/tmp/vps-maintenance-reboot"
 

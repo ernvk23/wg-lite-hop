@@ -11,6 +11,6 @@ echo -e "\n# Maintenance script permissions\n$USER ALL=(ALL) NOPASSWD: /usr/bin/
 
 # Add cron jobs
 echo "Adding cron jobs..."
-(echo "0 2 * * 1 \$HOME/wg-lite-hop-main/scripts/update.sh"; echo "@reboot sleep 60 && \$HOME/wg-lite-hop-main/scripts/post_reboot.sh") | crontab -
+(echo "0 2 * * 1 \$HOME/wg-lite-hop/scripts/update.sh"; echo "@reboot sleep 60 && \$HOME/wg-lite-hop/scripts/post_reboot.sh") | crontab -
 
 echo "--- Setup Complete ---"

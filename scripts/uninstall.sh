@@ -81,8 +81,8 @@ echo ""
 # --- Maintenance Cleanup ---
 echo "[4/5] Removing automated maintenance setup..."
 # Remove cron jobs
-if crontab -l 2>/dev/null | grep -q 'wg-lite-hop-main/scripts/'; then
-    crontab -l 2>/dev/null | grep -v 'wg-lite-hop-main/scripts/' | crontab -
+if crontab -l 2>/dev/null | grep -q 'wg-lite-hop/scripts/'; then
+    crontab -l 2>/dev/null | grep -v 'wg-lite-hop/scripts/' | crontab -
     echo "Removed cron jobs."
 else
     echo "No cron jobs found."

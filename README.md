@@ -27,7 +27,7 @@ _A high-level overview of the project architecture. (Image Credit: Diagram by er
 1. **Quick Install & Setup (AlmaLinux/RHEL):**
 
     ```shell
-    curl -L https://github.com/ernvk23/wg-lite-hop/archive/refs/heads/main.tar.gz | tar xz && cd wg-lite-hop-main && chmod +x ./scripts/setup.sh && sudo ./scripts/setup.sh
+    mkdir -p ~/wg-lite-hop && cd ~/wg-lite-hop && curl -L https://github.com/ernvk23/wg-lite-hop/archive/refs/heads/main.tar.gz | tar --strip-components=1 -xz && chmod +x ./scripts/setup.sh && sudo ./scripts/setup.sh
     ```
 
 > [!NOTE]
@@ -46,7 +46,7 @@ _A high-level overview of the project architecture. (Image Credit: Diagram by er
 4. **Set up automated maintenance (optional but recommended):**
 
     ```shell
-    chmod +x scripts/add_update_cron.sh && ./scripts/add_update_cron.sh
+    chmod +x ./scripts/add_update_cron.sh && ./scripts/add_update_cron.sh
     ```
 
 > [!NOTE]
@@ -83,7 +83,7 @@ The uninstall script removes the entire stack and its data from your server.
 To run the uninstaller, execute the following command from the project directory:
 
 ```shell
-chmod +x scripts/uninstall.sh && sudo ./scripts/uninstall.sh
+chmod +x ./scripts/uninstall.sh && sudo ./scripts/uninstall.sh
 ```
 
 ## Optional

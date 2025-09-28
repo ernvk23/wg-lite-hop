@@ -4,7 +4,7 @@
 # Handles Docker operations after system reboot
 
 # Configuration
-COMPOSE_DIR="$HOME/wg-lite-hop-main"
+COMPOSE_DIR="$HOME/wg-lite-hop"
 LOGFILE="$HOME/update.log"
 REBOOT_FLAG="/tmp/vps-maintenance-reboot"
 
