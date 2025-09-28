@@ -44,7 +44,7 @@ if [ "$CHECK_UPDATE_EXIT_CODE" -eq 100 ] && echo "$CHECK_UPDATE_OUTPUT" | grep -
     log "$SYSTEM_UPDATE_OUTPUT"
     
     # Create reboot flag for post-reboot script
-    echo "$(date)" > "$REBOOT_FLAG"
+    date > "$REBOOT_FLAG"
     
     log "Rebooting to apply updates..."
     sudo reboot

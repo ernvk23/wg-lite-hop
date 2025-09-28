@@ -105,8 +105,8 @@ echo ""
 
 # --- Local Configuration & Project Directory Cleanup ---
 echo "[5/5] Deleting project directory..."
-cd $USER_HOME
-rm -rf "$USER_HOME/$PROJECT_DIR_NAME"
+cd "$USER_HOME"
+rm -rf "${USER_HOME:?}/$PROJECT_DIR_NAME"
 echo "Project directory '$PROJECT_DIR_NAME' removed."
 echo ""
 

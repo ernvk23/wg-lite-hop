@@ -1,0 +1,21 @@
+name: Markdown Lint
+
+on:
+    push:
+        branches: ["main"]
+    pull_request:
+        branches: ["main"]
+    workflow_dispatch:
+
+jobs:
+    markdownlint:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - name: Run markdownlint-cli2
+              uses: DavidAnson/markdownlint-cli2-action@v16.0.0
+              with:
+                  globs: |
+                      **/*.md
+                      !node_modules
+                      !vendor

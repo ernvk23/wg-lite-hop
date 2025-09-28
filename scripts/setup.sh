@@ -30,7 +30,7 @@ fi
 
 # Docker group management (always run)
 sudo groupadd docker || true
-sudo usermod -aG docker $USER || true
+sudo usermod -aG docker "$USER" || true
 
 # Check if firewalld is present, install and enable if not
 if ! command -v firewall-cmd &> /dev/null; then

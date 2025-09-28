@@ -1,0 +1,20 @@
+name: Lychee Broken Link Checker
+
+on:
+    push:
+        branches: ["main"]
+    pull_request:
+        branches: ["main"]
+    workflow_dispatch:
+
+jobs:
+    markdown-link-check:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - name: Lychee Broken Link Checker
+              uses: lycheeverse/lychee-action@v2.6.1
+              with:
+                  args: "./**/*.md" # Checks all Markdown files recursively
+                  # Optional: You can add a config file for more advanced options
+                  # config: '.lycheerc.json'
