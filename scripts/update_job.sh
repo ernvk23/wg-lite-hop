@@ -30,7 +30,7 @@ log "$CHECK_UPDATE_OUTPUT"
 # then proceed with a full system update and reboot.
 if [ "$CHECK_UPDATE_EXIT_CODE" -eq 100 ] && echo "$CHECK_UPDATE_OUTPUT" | grep -v '^kernel-' | grep -q '^'; then
     log "Non-kernel system updates are available. Stopping containers, updating, and rebooting..."
-    
+
     # Stop Docker containers
     cd "$COMPOSE_DIR" || {
         log "ERROR: Cannot change to directory $COMPOSE_DIR"
@@ -42,36 +42,36 @@ if [ "$CHECK_UPDATE_EXIT_CODE" -eq 100 ] && echo "$CHECK_UPDATE_OUTPUT" | grep -
     log "Applying system updates..."
     SYSTEM_UPDATE_OUTPUT=$(sudo /usr/bin/dnf update -y 2>&1)
     log "$SYSTEM_UPDATE_OUTPUT"
-    
+
     # Create reboot flag for post-reboot script
-    date > "$REBOOT_FLAG"
-    
+    date >"$REBOOT_FLAG"
+
     log "Rebooting to apply updates..."
     sudo reboot
 else
     log "No non-kernel system updates available. Proceeding with Docker maintenance..."
-    
+
     # Handle Docker updates
     cd "$COMPOSE_DIR" || {
         log "ERROR: Cannot change to directory $COMPOSE_DIR"
         exit 1
     }
-    
+
     log "Pulling latest Docker images..."
     PULL_OUTPUT=$(docker compose pull 2>&1)
     log "Docker Pull Output:"
     log "$PULL_OUTPUT"
-    
+
     log "Updating containers..."
     UP_OUTPUT=$(docker compose up -d 2>&1)
     log "Docker Up Output:"
     log "$UP_OUTPUT"
-    
+
     log "Removing dangling images..."
     PRUNE_OUTPUT=$(docker image prune -f 2>&1)
     log "Docker Prune Output:"
     log "$PRUNE_OUTPUT"
-    
+
     log "Docker maintenance completed."
 fi
 

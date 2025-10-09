@@ -5,10 +5,10 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
-# --- Safety Check ---
+# Check sudo privileges
 if [ "$EUID" -ne 0 ]; then
-  echo "Error: This script must be run with sudo." >&2
-  exit 1
+    echo "Please run with sudo privileges"
+    exit 1
 fi
 
 USER_HOME=$(eval echo "~$SUDO_USER")
@@ -47,7 +47,7 @@ echo ""
 echo "--- Starting Uninstall ---"
 # --- Docker Cleanup ---
 echo "[1/5] Cleaning Docker resources..."
-if command -v docker &> /dev/null && [ -f "docker-compose.yml" ]; then
+if command -v docker &>/dev/null && [ -f "docker-compose.yml" ]; then
     docker compose down -v --rmi local --remove-orphans
     echo "Docker cleanup complete."
 else
@@ -57,7 +57,7 @@ echo ""
 
 # --- Firewall Cleanup ---
 echo "[2/5] Removing firewall rules..."
-if command -v firewall-cmd &> /dev/null; then
+if command -v firewall-cmd &>/dev/null; then
     firewall-cmd --permanent --remove-port=80/tcp || true
     firewall-cmd --permanent --remove-port=443/tcp || true
     firewall-cmd --permanent --remove-port=443/udp || true
@@ -74,7 +74,7 @@ echo "[3/5] Removing sysctl configuration..."
 SYSCTL_CONF_FILE="/etc/sysctl.d/99-system-udp-buffers.conf"
 if [ -f "$SYSCTL_CONF_FILE" ]; then
     rm -f "$SYSCTL_CONF_FILE"
-    sudo sysctl --system > /dev/null
+    sudo sysctl --system >/dev/null
     echo "Removed sysctl configuration for UDP buffers."
 else
     echo "Sysctl configuration file not found, skipping cleanup."
@@ -92,7 +92,6 @@ if sudo crontab -u "$CALLER" -l 2>/dev/null | grep -q "$PROJECT_DIR_NAME/scripts
 else
     echo "No cron jobs found for user $CALLER."
 fi
-
 
 # Remove sudoers rule
 if grep -q "# Maintenance script permissions" /etc/sudoers 2>/dev/null; then

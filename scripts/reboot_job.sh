@@ -22,9 +22,6 @@ fi
 
 log "=== POST-REBOOT OPERATIONS STARTED ==="
 
-# Wait for system to fully initialize
-sleep 60
-
 cd "$COMPOSE_DIR" || {
     log "ERROR: Cannot change to directory $COMPOSE_DIR"
     exit 1

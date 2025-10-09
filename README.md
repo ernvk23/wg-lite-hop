@@ -15,7 +15,7 @@ _A high-level overview of the project architecture. (Image Credit: Diagram by er
 - **Secure Access**: Web UIs are protected by Basic Authentication.
 - **Automated Maintenance**: Optional weekly system updates.
 - **Rate Limiting**: Optional UDP port rate-limiting for enhanced security.
-- **Simple Setup**: Get running with a single setup script.
+- **Simple Setup**: Get running with a single interactive setup script.
 
 ## Prerequisites
 
@@ -25,41 +25,28 @@ _A high-level overview of the project architecture. (Image Credit: Diagram by er
 
 ## Setup
 
-1. **Quick Install & Setup (AlmaLinux/RHEL):**
+1. **Quick run:**
 
     ```shell
     mkdir -p ~/wg-lite-hop && cd ~/wg-lite-hop && curl -L https://github.com/ernvk23/wg-lite-hop/archive/refs/heads/main.tar.gz | tar --strip-components=1 -xz --warning=none && chmod +x ./scripts/setup.sh && sudo ./scripts/setup.sh
-
     ```
+
+2. **Enjoy!**
 
 > [!NOTE]
-> This script installs Docker and `firewalld`, configures firewall rules, optimizes system settings, and prepares necessary configuration files.
-
-2. **Modify the `.env` file:**
-
-    Edit the `.env` file to set your actual domain, email, and a strong password hash.
-
-3. **Start the services:**
-
-    ```shell
-    sudo docker compose up -d
-    ```
-
-4. **Set up automated maintenance (optional but recommended):**
-
-    ```shell
-    chmod +x ./scripts/add_update_cron.sh && ./scripts/add_update_cron.sh
-    ```
-
-> [!NOTE]
-> This sets up weekly system updates and automatic reboots when required.
+> This script interactively guides you through configuring WireGuard, Traefik, and AdGuard Home. It installs Docker and `firewalld`, configures firewall rules, optimizes system settings, creates necessary configuration files (including `.env`), and optionally sets up automated weekly system updates and reboots.
 
 ## Access
 
 **Access to the web UIs is protected by a two-step process:**
 
-- **Traefik Basic Auth**: For `https://traefik.your_domain` (Traefik Dashboard) and the initial popup for all UIs, use the `AUTH_USER` and `AUTH_PASS_HASH` variables from your `.env` file.
-- **WireGuard UI**: For `https://your_domain` (Manage VPN clients), use the `WG_ADMIN_USER` and `WG_ADMIN_PASSWORD` variables from your `.env` file.
+- **Traefik Basic Auth**: For `https://traefik.your_domain` (Traefik Dashboard) and the initial popup for all UIs, use the username and password you set for "Web UI Authentication" during the interactive setup.
+
+- **WireGuard UI**: For `https://your_domain` (Manage VPN clients), use the username and password you set for "WireGuard UI Admin" during the interactive setup.
+
+> [!NOTE]
+> After the script completes, please wait approximately 1 minute for WireGuard to properly initialize before attempting to access its UI.
+
 - **AdGuard Home UI**: For `https://adguard.your_domain` (Configure ad-blocking), access is configured via the AdGuard Home setup wizard.
 
 > [!WARNING]
@@ -85,7 +72,7 @@ The uninstall script removes the entire stack and its data from your server.
 To run the uninstaller, execute the following command from the project directory:
 
 ```shell
-chmod +x ./scripts/uninstall.sh && sudo ./scripts/uninstall.sh
+cd ~/wg-lite-hop && chmod +x ./scripts/uninstall.sh && sudo ./scripts/uninstall.sh
 ```
 
 ## Optional
