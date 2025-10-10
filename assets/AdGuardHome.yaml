@@ -7,10 +7,12 @@ dns:
   anonymize_client_ip: true
   ratelimit: 0
   upstream_dns:
+    - https://dns10.quad9.net/dns-query
     - quic://dns.nextdns.io
     - tls://unfiltered.adguard-dns.com
     - tls://dns.quad9.net:853
   bootstrap_dns:
+    - 9.9.9.10
     - 9.9.9.9
     - 45.90.28.0
     - 8.8.8.8
