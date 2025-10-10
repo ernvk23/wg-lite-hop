@@ -17,8 +17,8 @@ echo "Adding cron jobs..."
 chmod +x "./scripts/update_job.sh"
 chmod +x "./scripts/reboot_job.sh"
 (
-    echo "0 2 * * 0 \$HOME/$PROJECT_DIR_NAME/scripts/update.sh"
-    echo "@reboot sleep 30 && \$HOME/$PROJECT_DIR_NAME/scripts/post_reboot.sh"
+    echo "0 2 * * 0 \$HOME/$PROJECT_DIR_NAME/scripts/update_job.sh"
+    echo "@reboot sleep 30 && \$HOME/$PROJECT_DIR_NAME/scripts/reboot_job.sh"
 ) | crontab -
 
 echo "--- Setup Complete ---"

@@ -55,7 +55,7 @@ validate_password() {
     if [ ${#password} -ge 8 ] && [[ "$password" =~ [A-Z] ]] && [[ "$password" =~ [a-z] ]] && [[ "$password" =~ [0-9] ]]; then
         return 0 # Success
     else
-        echo "Passwords doesn't meet policy. Please try again." >&2
+        echo "Password doesn't meet policy. Please try again." >&2
         return 1 # Failure
     fi
 }
