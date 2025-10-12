@@ -17,6 +17,12 @@ A complete VPN setup with web management, automatic ad-blocking, and built-in se
 - Security Features: Optional UDP rate-limiting
 - One-command Setup: Interactive installation script handles everything
 
+## See It In Action
+
+![Demo](./assets/demo.gif)
+
+*Demo (5x speed)*
+
 ## Requirements
 
 - Linux server (**RHEL-based**, ***tested on AlmaLinux 9.6***) with public IP

@@ -340,10 +340,7 @@ sudo docker compose up -d
 echo "Docker services started."
 
 # Create minimal instructions file
-echo "--- Final Instructions ---"
 cat <<EOF >instructions.txt
-Setup Complete!
-
 Access URLs:
 - https://$DOMAIN (WireGuard UI)
 - https://traefik.$DOMAIN (Traefik Dashboard)
@@ -357,6 +354,6 @@ During AdGuard Home setup, set Admin Web Interface Port to 3000.
 EOF
 
 echo
-echo "Setup complete!"
+echo "--- Setup complete! ---"
 echo "Instructions file created. Contents:"
 cat instructions.txt

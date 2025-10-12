@@ -2,5 +2,6 @@
     "default": true, // Enable all rules by default
     "MD013": false, // Disable line length rule
     "MD029": false, // Disable ordered list item prefix rule
-    "MD028": false // Disable blank line inside blockquote rule
+    "MD028": false, // Disable blank line inside blockquote rule
+    "MD036": false // Disable emphasis instead of heading
 }
