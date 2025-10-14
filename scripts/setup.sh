@@ -28,7 +28,7 @@ fi
 clear
 echo "=== Interactive Setup ==="
 echo "It is recommended to let the setup complete. Press Ctrl+C to cancel, but be aware some changes might have been applied."
-echo
+
 # --- Validation Functions ---
 validate_domain() {
     local domain="$1"
@@ -214,6 +214,25 @@ generate_htpasswd_hash() {
     sudo docker run --rm httpd:2.4-alpine htpasswd -nbB "$username" "$password" | cut -d: -f2 | sed 's/\$/\$\$/g'
 }
 
+echo
+echo "--- Setup Type Selection ---"
+echo "Minimal setup (WireGuard, AdGuard Home, Traefik) selected by default."
+
+read -r -p "Do you want to add monitoring (Prometheus, Grafana, Node Exporter)? (y/N): " add_monitoring_response
+if [[ "$add_monitoring_response" =~ ^[yY]$ ]]; then
+    echo "Monitoring setup selected."
+    rm -f docker-compose.yml
+    mv docker-compose-monitor.yml docker-compose.yml
+else
+    echo "Minimal setup confirmed."
+    rm -f docker-compose-monitor.yml
+    echo "Removing Prometheus folder for minimal setup..."
+    rm -rf ./prometheus
+    echo "Prometheus folder removed."
+fi
+echo "Docker Compose file prepared."
+
+echo
 echo "--- Collecting Configuration ---"
 # Main configuration collection
 prompt_domain
@@ -228,10 +247,9 @@ while ! show_config_summary; do
     echo "Please re-enter the configuration."
 done
 
-echo
 echo "Configuration complete! Starting system setup..."
-echo
 
+echo
 echo "--- System Setup ---"
 
 # Install Docker if not present and start it
@@ -324,8 +342,9 @@ mkdir -p ./adguard/adguard_work ./adguard/adguard_conf
 chmod -R 700 ./adguard/adguard_work ./adguard/adguard_conf
 echo "AdGuard Home volume directories created."
 
-# Prompt for automated maintenance setup
-read -r -p "Do you want to set up automated weekly system updates and reboots? (y/n): " setup_maintenance_response
+echo
+echo "--- Automated maintenance ---"
+read -r -p "Do you want to set up automated weekly system updates and reboots? (y/N): " setup_maintenance_response
 if [[ "$setup_maintenance_response" =~ ^[yY]$ ]]; then
     echo "Setting up automated maintenance..."
     chmod +x ./scripts/add_cron_jobs.sh && sudo -u "$CALLER" ./scripts/add_cron_jobs.sh
@@ -334,26 +353,10 @@ else
     echo "Automated maintenance skipped."
 fi
 
-# Start the services automatically
-echo "Starting Docker services..."
+echo
+echo "--- Start services ---"
 sudo docker compose up -d
-echo "Docker services started."
-
-# Create minimal instructions file
-cat <<EOF >instructions.txt
-Access URLs:
-- https://$DOMAIN (WireGuard UI)
-- https://traefik.$DOMAIN (Traefik Dashboard)
-- https://adguard.$DOMAIN (AdGuard Home UI)
-
-Credentials:
-- Web UI Authentication: $AUTH_USER / [password you set]
-- WireGuard UI Admin: $WG_ADMIN_USER / [password you set]
-
-During AdGuard Home setup, set Admin Web Interface Port to 3000.
-EOF
 
 echo
 echo "--- Setup complete! ---"
-echo "Instructions file created. Contents:"
-cat instructions.txt
+echo "Please refer to the README.md file for instructions on how to access your services and for further configuration details."

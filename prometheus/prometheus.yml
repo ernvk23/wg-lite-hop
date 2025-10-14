@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 15s # Better default for most metrics
+  evaluation_interval: 15s # How often to evaluate alerting rules
+
+scrape_configs:
+  - job_name: "prometheus"
+    scrape_interval: 30s # Prometheus scraping itself doesn't need to be frequent
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: "wg-easy"
+    scrape_interval: 15s # Good for seeing connection changes quickly
+    metrics_path: /metrics/prometheus
+    static_configs:
+      - targets: ["wg-easy:51821"]
+
+  - job_name: "node-exporter"
+    scrape_interval: 15s # Standard for system metrics
+    static_configs:
+      - targets: ["node-exporter:9100"]

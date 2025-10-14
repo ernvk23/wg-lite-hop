@@ -15,7 +15,10 @@ A complete VPN setup with web management, automatic ad-blocking, and built-in se
 - Protected Access: Basic Authentication on all web interfaces
 - Automated Maintenance: Optional weekly system updates
 - Security Features: Optional UDP rate-limiting
-- One-command Setup: Interactive installation script handles everything
+- **One-command Setup**: Interactive installation script handles everything
+
+> [!NOTE]
+> Optional monitoring stack (Prometheus, Grafana, Node Exporter) available during setup.
 
 ## See It In Action
 
@@ -34,11 +37,13 @@ A complete VPN setup with web management, automatic ad-blocking, and built-in se
 **Quick run:**
 
 ```shell
-mkdir -p ~/wg-lite-hop && cd ~/wg-lite-hop && curl -L https://github.com/ernvk23/wg-lite-hop/archive/refs/tags/v1.0.tar.gz | tar --strip-components=1 -xz --warning=none && chmod +x ./scripts/setup.sh && sudo ./scripts/setup.sh
+mkdir -p ~/wg-lite-hop && cd ~/wg-lite-hop && curl -L https://github.com/ernvk23/wg-lite-hop/archive/refs/tags/v2.0.tar.gz | tar --strip-components=1 -xz --warning=none && chmod +x ./scripts/setup.sh && sudo ./scripts/setup.sh
 ```
 
 > [!NOTE]
-> **That's it.** The script guides you through setup interactively, asking for your domain, email, and passwords, then handles everything else automatically (Docker installation, firewall configuration, SSL certificates, and service deployment).
+> **That's it.** The script guides you through setup interactively, asking you the installation method (minimal or with monitoring), your domain, email, and passwords, then handles everything else automatically (Docker installation, firewall configuration, SSL certificates, and service deployment).
+
+---
 
 ## Accessing Your Services
 
@@ -49,6 +54,8 @@ All web interfaces require two-step authentication:
    - **WireGuard UI** (`https://your_domain`): Use "WireGuard UI Admin" credentials
    - **AdGuard Home** (`https://adguard.your_domain`): Configure during first-time setup wizard
    - **Traefik Dashboard** (`https://traefik.your_domain`): No additional login after Basic Auth
+   - **Prometheus Dashboard** (`https://prometheus.your_domain`): No additional login after Basic Auth *(monitoring setup only)*
+   - **Grafana Dashboard** (`https://grafana.your_domain`): Admin: admin / admin (set new password on first login) *(monitoring setup only)*
 
 > [!NOTE]
 > Wait ~1 minute after installation before accessing the WireGuard UI.
@@ -59,6 +66,15 @@ All web interfaces require two-step authentication:
 > Set the **Admin Web Interface Port** to **3000** during the setup wizard. Reload if the UI appears unresponsive.
 
 > If you accidentally use port 80, edit `docker-compose.yml` (change `server.port=3000` to `server.port=80` in the `adguard` service) and run `sudo docker compose up -d`.
+
+### Prometheus and Grafana Setup *(monitoring setup only)*
+
+To enable Prometheus and Grafana monitoring:
+
+1. **Enable Prometheus in WireGuard UI**: Access the WireGuard admin panel (`https://your_domain`), navigate to **General** settings, enable the **Prometheus** toggle, **Save**, and restart with `sudo docker restart wg-easy`.
+2. **Import Grafana Dashboards**:
+    - For WireGuard statistics, import dashboard ID `21733`.
+    - For full system statistics via Node Exporter, import dashboard ID `1860`.
 
 ## Using Your VPN
 

@@ -4,6 +4,10 @@
 volumes:
   etc_wireguard:
     name: etc_wireguard
+  prometheus_data:
+    name: prometheus_data
+  grafana_data:
+    name: grafana_data
 
 services:
   # Traefik reverse proxy
@@ -114,6 +118,75 @@ services:
       - "traefik.http.services.wg-easy.loadbalancer.server.port=51821"
       # Network
       - "traefik.docker.network=traefik_net"
+
+  # Prometheus monitoring
+  prometheus:
+    image: prom/prometheus:v3.6.0
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+    networks:
+      - traefik_net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus-ui.rule=Host(`prometheus.${DOMAIN}`)"
+      - "traefik.http.routers.prometheus-ui.entrypoints=websecure"
+      - "traefik.http.routers.prometheus-ui.middlewares=auth@docker"
+      - "traefik.http.routers.prometheus-ui.service=prometheus"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+      - "traefik.docker.network=traefik_net"
+
+  # Grafana dashboard
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: grafana
+    restart: unless-stopped
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - traefik_net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana-ui.rule=Host(`grafana.${DOMAIN}`)"
+      - "traefik.http.routers.grafana-ui.entrypoints=websecure"
+      - "traefik.http.routers.grafana-ui.middlewares=auth@docker"
+      - "traefik.http.routers.grafana-ui.service=grafana"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+      - "traefik.docker.network=traefik_net"
+
+  # Node Exporter for host metrics
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    container_name: node-exporter
+    restart: unless-stopped
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.rootfs=/rootfs"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc|run)($$|/)"
+      # Enable only what's disabled by default
+      - "--collector.systemd"
+      - "--collector.processes"
+      - "--collector.tcpstat"
+      # Disable noisy collectors you don't need
+      - "--no-collector.hwmon"
+      - "--no-collector.arp"
+      - "--no-collector.wifi"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    cap_add:
+      - SYS_TIME
+    networks:
+      - traefik_net
+    labels:
+      - "traefik.enable=false"
 
 # Networks
 networks:
