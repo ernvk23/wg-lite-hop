@@ -12,7 +12,7 @@ volumes:
 services:
   # Traefik reverse proxy
   traefik:
-    image: traefik:3.5
+    image: traefik:3.6
     container_name: traefik
     restart: unless-stopped
     ports:
@@ -48,7 +48,7 @@ services:
   # AdGuard Home DNS blocker
   adguard:
     # Stable fallback image, v0.107.65 known for breaking the login password.
-    image: adguard/adguardhome:v0.107.67
+    image: adguard/adguardhome:v0.107.69
     container_name: adguard
     restart: unless-stopped
     volumes:
