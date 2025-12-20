@@ -1,0 +1,79 @@
+name: Create Release on Tag
+
+on:
+    push:
+        tags:
+            - "v*"
+
+jobs:
+    create-release:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0 # Fetch all history for changelog generation
+
+            - name: Get version from tag
+              id: get_version
+              run: |
+                  TAG_NAME="${GITHUB_REF#refs/tags/}"
+                  echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+                  echo "release_title=$TAG_NAME" >> $GITHUB_OUTPUT
+
+            - name: Generate changelog
+              id: changelog
+              run: |
+                  # Get previous tag
+                  PREVIOUS_TAG=$(git describe --tags --abbrev=0 "$(git rev-list --tags --skip=1 --max-count=1)" 2>/dev/null || echo "")
+
+                  if [ -z "$PREVIOUS_TAG" ]; then
+                    # First tag, get all commits
+                    COMMIT_RANGE=""
+                    CHANGELOG=$(git log --oneline --format="- %s" HEAD)
+                  else
+                    # Get commits between previous tag and current tag
+                    COMMIT_RANGE="$PREVIOUS_TAG..$TAG_NAME"
+                    CHANGELOG=$(git log --oneline --format="- %s" $COMMIT_RANGE)
+                  fi
+
+                  # Filter out chore commits if desired, or keep all
+                  echo "changelog<<EOF" >> $GITHUB_OUTPUT
+                  echo "$CHANGELOG" >> $GITHUB_OUTPUT
+                  echo "EOF" >> $GITHUB_OUTPUT
+
+                  echo "Previous tag: $PREVIOUS_TAG"
+                  echo "Commit range: $COMMIT_RANGE"
+
+            - name: Create Release
+              uses: softprops/action-gh-release@v1
+              with:
+                  tag_name: ${{ steps.get_version.outputs.tag_name }}
+                  name: ${{ steps.get_version.outputs.release_title }}
+                  body: |
+                      ## 🚀 ${{ steps.get_version.outputs.release_title }}
+
+                      ### 📋 Changelog
+
+                      ${{ steps.changelog.outputs.changelog }}
+
+                      ---
+
+                      ### ⚡ Quick Install
+
+                      ```shell
+                      curl -O https://raw.githubusercontent.com/ernvk23/wg-lite-hop/main/scripts/install.sh && chmod +x ./install.sh && ./install.sh
+                      ```
+
+                      ### 📖 Documentation
+
+                      Full documentation: [README.md](https://github.com/ernvk23/wg-lite-hop/blob/${{ steps.get_version.outputs.tag_name }}/README.md)
+
+                      ### 🔙 Previous Releases
+
+                      All releases: [Releases page](https://github.com/ernvk23/wg-lite-hop/releases)
+                  draft: false
+                  prerelease: false
+                  generate_release_notes: false

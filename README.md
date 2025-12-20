@@ -37,11 +37,14 @@ A complete VPN setup with web management, automatic ad-blocking, and built-in se
 **Quick run:**
 
 ```shell
-mkdir -p ~/wg-lite-hop && cd ~/wg-lite-hop && curl -L https://github.com/ernvk23/wg-lite-hop/archive/refs/tags/v2.1.tar.gz | tar --strip-components=1 -xz --warning=none && chmod +x ./scripts/setup.sh && sudo ./scripts/setup.sh
+curl -O https://raw.githubusercontent.com/ernvk23/wg-lite-hop/main/scripts/install.sh && chmod +x ./install.sh && ./install.sh
 ```
 
 > [!NOTE]
 > **That's it.** The script guides you through setup interactively, asking you the installation method (minimal or with monitoring), your domain, email, and passwords, then handles everything else automatically (Docker installation, firewall configuration, SSL certificates, and service deployment).
+
+> [!TIP]
+> Check the [Releases page](https://github.com/ernvk23/wg-lite-hop/releases) for the latest version and changelog.
 
 ---
 
